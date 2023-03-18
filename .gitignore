@@ -1,0 +1,6 @@
+*.env
+*.DS_Store
+venv/
+logs/
+dags/__pycache__
+dags/pipeline/utils/__pycache__

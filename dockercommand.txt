@@ -1,0 +1,4 @@
+docker-compose up -d 
+docker-compose down (not deleting volummes)
+docker-compose down -v (deleting volumes)
+
