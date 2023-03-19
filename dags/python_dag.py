@@ -26,7 +26,7 @@ with DAG(
     dag_id='iter_dag',
     default_args=default_args,
     schedule_interval='@daily',
-    dagrun_timeout=timedelta(minutes=240),
+    dagrun_timeout=timedelta(minutes=300),
 ) as dag:
     task_get_raw_data = PythonOperator(
         task_id = 'get_raw_data',
@@ -44,29 +44,31 @@ with DAG(
         task_id = 'split_category',
         python_callable=split_category
     )
-    task_location_std = PythonOperator(
-        task_id = 'location_std',
-        python_callable=location_standardize
+    task_location_cln = PythonOperator(
+        task_id = 'location_cln',
+        python_callable=location_cleaning
     )
-    # task_remove_null_acm = PythonOperator(
-    #     task_id = 'remove_null_acm',
-    #     python_callable=remove_null_accommodation
-    # )
-    # task_remove_null_atr = PythonOperator(
-    #     task_id = 'remove_null_atr',
-    #     python_callable=remove_null_attraction
-    # )
-    # task_remove_null_rst = PythonOperator(
-    #     task_id = 'remove_null_rst',
-    #     python_callable=remove_null_restaurant
-    # )
-    # task_remove_null_shp = PythonOperator(
-    #     task_id = 'remove_null_shp',
-    #     python_callable=remove_null_shop
-    # )
+    task_sha_cln = PythonOperator(
+        task_id = 'sha_cln',
+        python_callable=sha_cleaning
+    )
+    task_contact_cln = PythonOperator(
+        task_id = 'contact_cln',
+        python_callable=contact_cleaning
+    )
+    task_facilities_cln = PythonOperator(
+        task_id = 'facilities_cln',
+        python_callable=facilities_cleaning
+    )
+    task_services_cln = PythonOperator(
+        task_id = 'services_cln',
+        python_callable=services_cleaning
+    )
+    task_places_cln = PythonOperator(
+        task_id = 'places_cln',
+        python_callable=places_cleaning
+    )
 
-task_get_raw_data >> task_get_detail >> task_split_nested >> task_location_std 
-# task_split_category >> [task_remove_null_acm,
-#                         task_remove_null_atr, 
-#                         task_remove_null_rst, 
-#                         task_remove_null_shp]
+task_get_raw_data >> task_get_detail >> task_split_nested
+task_split_nested >> [task_location_cln, task_sha_cln, task_contact_cln, task_facilities_cln, task_services_cln]
+task_split_nested >> task_places_cln
