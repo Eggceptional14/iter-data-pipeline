@@ -32,3 +32,13 @@ def sha_cleaning(ti):
     out = sha_df.to_json(orient="records")
     ti.xcom_push(key='sha_df', value=out)
     
+def contact_cleaning(ti):
+    data = ti.xcom_pull(key='data_location', task_ids='split_nested')
+    contact_df = pd.DataFrame(data)
+
+    contact_df.fillna("")
+
+    print(contact_df.head(10))
+    out = contact_df.to_json(orient="records")
+    ti.xcom_push(key='contact_df', value=out)
+    
