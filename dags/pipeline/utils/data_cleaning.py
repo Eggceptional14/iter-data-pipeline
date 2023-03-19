@@ -42,3 +42,10 @@ def contact_cleaning(ti):
     out = contact_df.to_json(orient="records")
     ti.xcom_push(key='contact_df', value=out)
     
+def facilities_cleaning(ti): #incomplete
+    data = ti.xcom_pull(key='data_location', task_ids='split_nested')
+    facilities_df = pd.DataFrame(data)
+
+    out = facilities_df.to_json(orient="records")
+    ti.xcom_push(key='facilities_df', value=out)
+
