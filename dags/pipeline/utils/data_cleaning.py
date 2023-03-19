@@ -1,9 +1,9 @@
 import pandas as pd
 
 
-def location_standardize(ti):
-    location = ti.xcom_pull(key='data_location', task_ids='split_nested')
-    location_df = pd.DataFrame(location)
+def location_cleaning(ti):
+    data = ti.xcom_pull(key='data_location', task_ids='split_nested')
+    location_df = pd.DataFrame(data)
 
     provinces = set(location_df.province)
     for province in provinces:
