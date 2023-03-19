@@ -56,3 +56,9 @@ def services_cleaning(ti): #incomplete
     out = services_df.to_json(orient="records")
     ti.xcom_push(key='services_df', value=out)
 
+def places_cleaning(ti): #incomplete
+    data = ti.xcom_pull(key='data_location', task_ids='split_nested')
+    places_df = pd.DataFrame(data)
+
+    out = places_df.to_json(orient="records")
+    ti.xcom_push(key='places_df', value=out)
