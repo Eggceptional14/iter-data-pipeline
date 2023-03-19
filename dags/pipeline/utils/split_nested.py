@@ -3,7 +3,7 @@ import json
 
 def split_nested(ti):
     data = ti.xcom_pull(key="data", task_ids="get_detail")
-    contact, location, sha, output = [], [], [], []
+    contact, location, sha, places = [], [], [], []
     for place in data:
         place_obj = json.loads(place)
 
@@ -19,9 +19,9 @@ def split_nested(ti):
         tmp_contact['place_id'] = place_obj['place_id']
         contact.append(tmp_contact)
 
-        output.append(place_obj)
+        places.append(place_obj)
     
     ti.xcom_push(key="data_contact", value=contact)
     ti.xcom_push(key="data_location", value=location)
     ti.xcom_push(key="data_sha", value=sha)
-    ti.xcom_push(key="data_rm_nested", value=output)
+    ti.xcom_push(key="data_places", value=places)
