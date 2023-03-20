@@ -45,6 +45,21 @@ def contact_cleaning(ti):
 def facilities_cleaning(ti): #incomplete
     data = ti.xcom_pull(key='data_location', task_ids='split_nested')
     facilities_df = pd.DataFrame(data)
+    
+    new_col = []
+    for index, row in data.iterrows():
+        tmp = []
+        for item in row:
+            if item != None:
+                tmp.append(item['description'])
+
+        if len(tmp) > 0:
+            new_col.append(tmp)
+        else:
+            new_col.append("")
+
+    facilities_df['description'] = new_col
+    facilities_df.drop(columns=[0,1,2,3,4,5,6,7,8,9,10], inplace=True)
 
     out = facilities_df.to_json(orient="records")
     ti.xcom_push(key='facilities_df', value=out)
@@ -52,7 +67,7 @@ def facilities_cleaning(ti): #incomplete
 def services_cleaning(ti): #incomplete
     data = ti.xcom_pull(key='data_location', task_ids='split_nested')
     services_df = pd.DataFrame(data)
-
+    
     out = services_df.to_json(orient="records")
     ti.xcom_push(key='services_df', value=out)
 
