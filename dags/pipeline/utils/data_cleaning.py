@@ -56,19 +56,16 @@ def facilities_cleaning(ti):
     facilities_df = pd.read_json(data, orient='records')
 
     new_col = []
-    for index, row in data.iterrows():
+    for index, row in facilities_df.drop(columns=['place_id']).iterrows():
         tmp = []
         for item in row:
+            # print(item)
             if item != None:
                 tmp.append(item['description'])
-
-        if len(tmp) > 0:
-            new_col.append(tmp)
-        else:
-            new_col.append("")
+        new_col.append(tmp)
 
     facilities_df['description'] = new_col
-    facilities_df.drop(columns=[0,1,2,3,4,5,6,7,8,9,10], inplace=True)
+    facilities_df = facilities_df.loc[:, ['place_id', 'description']]
 
     out = facilities_df.to_json(orient="records")
     ti.xcom_push(key='facilities_df', value=out)
