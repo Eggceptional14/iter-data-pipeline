@@ -3,7 +3,8 @@ import pandas as pd
 
 def location_cleaning(ti):
     data = ti.xcom_pull(key='data_location', task_ids='split_nested')
-    location_df = pd.DataFrame(data)
+    location_df = pd.read_json(data, orient='records')
+    # print(location_df)
 
     provinces = set(location_df.province)
     for province in provinces:
