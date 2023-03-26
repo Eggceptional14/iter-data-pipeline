@@ -8,12 +8,12 @@ def split_place_nested(ti):
     # print(place_df.info())
     # print(place_df[['tags','rooms', 'place_information', 'opening_hours', 'michelins']])
     
-    tag = pd.json_normalize(place_df.tags)
-    tag['place_id'] = place_df['place_id']
+    # split tag column: tag is a list of string
+    tag = place_df[['place_id', 'tags']]
     out_tag = tag.to_json(orient='records')
 
-    room = pd.json_normalize(place_df.rooms)
-    room['place_id'] = place_df['place_id']
+    # split room column: room column is a list of json object
+    room = place_df[['place_id', 'rooms']]
     out_room = room.to_json(orient='records')
 
     info = pd.json_normalize(place_df.place_information)
@@ -24,8 +24,8 @@ def split_place_nested(ti):
     ophr['place_id'] = place_df['place_id']
     out_ophr = ophr.to_json(orient='records')
 
-    michelin = pd.json_normalize(place_df.michelins)
-    michelin['place_id'] = place_df['place_id']
+    # split michelin column: michelin column is a list of json object
+    michelin = place_df[['place_id', 'michelins']]
     out_michelin = michelin.to_json(orient='records')
 
     place_df.drop(columns=['tags, rooms, place_information, opening_hours, michelins'], inplace=True)
