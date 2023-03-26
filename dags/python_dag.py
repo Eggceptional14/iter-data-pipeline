@@ -7,7 +7,6 @@ from airflow.operators.python import PythonOperator
 from pipeline.utils.get_raw_data import get_raw_data
 from pipeline.utils.get_detail import get_detail
 from pipeline.utils.split_nested import split_nested
-from pipeline.utils.remove_null import *
 from pipeline.utils.data_cleaning import *
 from pipeline.utils.split_category import split_category
 from pipeline.utils.split_place_nested import split_place_nested
