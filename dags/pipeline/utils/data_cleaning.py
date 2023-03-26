@@ -67,6 +67,7 @@ def facilities_cleaning(ti):
     facilities_df['description'] = new_col
     facilities_df = facilities_df.loc[:, ['place_id', 'description']]
 
+    print(facilities_df.head(10))
     out = facilities_df.to_json(orient="records")
     ti.xcom_push(key='facilities_df', value=out)
 
