@@ -93,6 +93,60 @@ def services_cleaning(ti):
 def places_cleaning(ti):
     data = ti.xcom_pull(key='data_places', task_ids='split_nested')
     places_df = pd.read_json(data, orient='records')
+    
+    # replace missing latitude and longitude with value exceed its maximum
+    places_df.latitude.fillna(91, inplace=True)
+    places_df.longitude.fillna(181, inplace=True)
+
+    # replace missing urls with empty string
+    places_df.web_picture_urls.fillna("", inplace=True)
+    places_df.mobile_picture_urls.fillna("", inplace=True)
+
+    # replace missing hit_score with -1
+    places_df.hit_score.fillna(-1.0, inplace=True)
+
+    # convert nested to list of payment methods
+    pm = pd.json_normalize(places_df.payment_methods)
+    new_col = []
+    for index, row in pm.iterrows():
+        temp = []
+        for item in row:
+            if item != None:
+                temp.append(item['description'])
+        new_col.append(temp)
+
+    places_df.drop(columns=['payment_methods'], inplace=True)
+    places_df['payment_methods'] = new_col
+
+    # fill how to travel missing value with empty string
+    places_df.how_to_travel = places_df.how_to_travel.apply(lambda d: d if isinstance(d, list) else [])
+
+    # fill standard missing value with empty string
+    places_df.standard.fillna("", inplace=True)
+
+    # replace missing awards with empty list
+    places_df.awards = places_df.awards.apply(lambda d: d if isinstance(d, list) else [])
+
+    # clean up destination column
+    places_df.destination = places_df.destination.apply(lambda x: x.upper())
+    df_thaiprov = pd.read_csv('./dags/pipeline/data/province_th.csv')
+    length = len(df_thaiprov)
+    for i in range(length):
+        thai_name = df_thaiprov.iloc[i]["Thai Name"]
+        eng_name = df_thaiprov.iloc[i]["Name"]
+        places_df.destination = places_df.destination.replace(thai_name, eng_name.upper())
+
+    th = ["หัวหิน", "พัทยา", "เกาะลันตา", "เกาะช้าง"]
+    en = ["hua hin", "pattaya", "ko lanta", "ko chang"]
+
+    i = 0
+    for place in th:
+        places_df.destination = places_df.destination.replace(place, en[i].upper())
+        i += 1
+
+    change = ['BURI RAM', 'SI SA KET']
+    for place in change:
+        places_df.destination = places_df.destination.replace(place, place.replace(" ", ""))
 
     out = places_df.to_json(orient="records")
     ti.xcom_push(key='places_df', value=out)
