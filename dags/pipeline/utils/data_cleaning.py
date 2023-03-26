@@ -75,6 +75,18 @@ def services_cleaning(ti):
     data = ti.xcom_pull(key='data_service', task_ids='split_nested')
     services_df = pd.read_json(data, orient='records')
     
+    new_col = []
+    for index, row in services_df.drop(columns=['place_id']).iterrows():
+        tmp = []
+        for item in row:
+            if item != None:
+                tmp.append(item['description'])
+        new_col.append(tmp)
+
+    services_df['description'] = new_col
+    services_df = services_df.loc[:, ['place_id', 'description']]
+    
+    print(services_df.head(10))
     out = services_df.to_json(orient="records")
     ti.xcom_push(key='services_df', value=out)
 
