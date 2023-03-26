@@ -25,7 +25,7 @@ default_args = {
 with DAG(
     dag_id='iter_dag',
     default_args=default_args,
-    schedule_interval='@daily',
+    schedule_interval='@weekly',
     dagrun_timeout=timedelta(minutes=300),
 ) as dag:
     task_get_raw_data = PythonOperator(
