@@ -37,8 +37,15 @@ def sha_cleaning(ti):
 def contact_cleaning(ti):
     data = ti.xcom_pull(key='data_contact', task_ids='split_nested')
     contact_df = pd.read_json(data, orient='records')
+    # print(data)
+    # print(contact_df)
 
-    contact_df.fillna("")
+    contact_df.phones = contact_df.phones.apply(lambda d: d if isinstance(d, list) else [])
+    contact_df.mobiles = contact_df.mobiles.apply(lambda d: d if isinstance(d, list) else [])
+    contact_df.emails = contact_df.emails.apply(lambda d: d if isinstance(d, list) else [])
+    contact_df.urls = contact_df.urls.apply(lambda d: d if isinstance(d, list) else [])
+
+    contact_df.fax = contact_df.fax.fillna("")
 
     print(contact_df.head(10))
     out = contact_df.to_json(orient="records")
