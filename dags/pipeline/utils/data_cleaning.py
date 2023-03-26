@@ -26,7 +26,7 @@ def location_cleaning(ti):
 
 def sha_cleaning(ti):
     data = ti.xcom_pull(key='data_sha', task_ids='split_nested')
-    sha_df = pd.DataFrame(data)
+    sha_df = pd.read_json(data, orient='records')
 
     sha_df.drop(sha_df[sha_df['sha_name'] == ""].index, inplace=True)
 
