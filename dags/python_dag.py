@@ -97,4 +97,5 @@ with DAG(
 
 task_get_raw_data >> task_get_detail >> task_split_nested
 task_split_nested >> [task_location_cln, task_sha_cln, task_contact_cln, task_facilities_cln, task_services_cln]
-task_split_nested >> task_places_cln
+task_split_nested >> task_places_cln >> task_places_split
+task_places_split >> [task_tag_cln, task_inf_cln, task_mcl_cln, task_ophr_cln, task_room_cln] >> task_split_category
