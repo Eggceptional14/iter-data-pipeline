@@ -4,10 +4,9 @@ import pandas as pd
 
 def split_place_nested(ti):
     data = ti.xcom_pull(key="places_df", task_ids="places_cln")
-    data_casted = []
-    for d in data:
-        data_casted.append(json.loads(d))
-    place_df = pd.DataFrame.from_records(data_casted)
+    place_df = pd.read_json(data, orient='records')
+    # print(place_df.info())
+    # print(place_df[['tags','rooms', 'place_information', 'opening_hours', 'michelins']])
     
     tag = pd.json_normalize(place_df.tags)
     tag['place_id'] = place_df['place_id']
