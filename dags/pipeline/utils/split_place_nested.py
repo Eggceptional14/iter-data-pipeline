@@ -28,7 +28,7 @@ def split_place_nested(ti):
     michelin = place_df[['place_id', 'michelins']]
     out_michelin = michelin.to_json(orient='records')
 
-    place_df.drop(columns=['tags, rooms, place_information, opening_hours, michelins'], inplace=True)
+    place_df.drop(columns=['tags', 'rooms', 'place_information', 'opening_hours', 'michelins'], inplace=True)
     out_place = place_df.to_json(orient='records')
 
     ti.xcom_push(key='data_tags', value=out_tag)
