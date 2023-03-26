@@ -10,6 +10,8 @@ from pipeline.utils.split_nested import split_nested
 from pipeline.utils.remove_null import *
 from pipeline.utils.data_cleaning import *
 from pipeline.utils.split_category import split_category
+from pipeline.utils.split_place_nested import split_place_nested
+from pipeline.utils.place_data_transform import *
 
 
 default_args = {
@@ -67,6 +69,30 @@ with DAG(
     task_places_cln = PythonOperator(
         task_id = 'places_cln',
         python_callable=places_cleaning
+    )
+    task_places_split = PythonOperator(
+        task_id = 'places_split',
+        python_callable=split_place_nested
+    )
+    task_tag_cln = PythonOperator(
+        task_id = 'tag_cln',
+        python_callable=tag_data_cleaning
+    )
+    task_inf_cln = PythonOperator(
+        task_id = 'inf_cln',
+        python_callable=info_data_cleaning
+    )
+    task_mcl_cln = PythonOperator(
+        task_id = 'mcl_cln',
+        python_callable=michelin_data_cleaning
+    )
+    task_ophr_cln = PythonOperator(
+        task_id = 'ophr_cln',
+        python_callable=ophr_data_cleaning
+    )
+    task_room_cln = PythonOperator(
+        task_id = 'room_cln',
+        python_callable=room_data_cleaning
     )
 
 task_get_raw_data >> task_get_detail >> task_split_nested
