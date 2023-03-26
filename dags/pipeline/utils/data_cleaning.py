@@ -149,5 +149,7 @@ def places_cleaning(ti):
         places_df.destination = places_df.destination.replace(place, place.replace(" ", ""))
 
     places_df.drop(columns=['update_date', 'thumbnail_url', 'map_code', 'area'], inplace=True)
+    print(places_df.head(10))
+    print(places_df.info())
     out = places_df.to_json(orient="records")
     ti.xcom_push(key='places_df', value=out)
