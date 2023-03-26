@@ -31,6 +31,13 @@ def split_place_nested(ti):
     place_df.drop(columns=['tags', 'rooms', 'place_information', 'opening_hours', 'michelins'], inplace=True)
     out_place = place_df.to_json(orient='records')
 
+    print(tag.head())
+    print(room.head())
+    print(info.head())
+    print(ophr.head())
+    print(michelin.head())
+    print(place_df.head())
+
     ti.xcom_push(key='data_tags', value=out_tag)
     ti.xcom_push(key='data_info', value=out_info)
     ti.xcom_push(key='data_michelin', value=out_michelin)
