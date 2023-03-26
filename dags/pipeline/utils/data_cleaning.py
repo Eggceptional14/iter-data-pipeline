@@ -35,8 +35,8 @@ def sha_cleaning(ti):
     ti.xcom_push(key='sha_df', value=out)
     
 def contact_cleaning(ti):
-    data = ti.xcom_pull(key='data_location', task_ids='split_nested')
-    contact_df = pd.DataFrame(data)
+    data = ti.xcom_pull(key='data_contact', task_ids='split_nested')
+    contact_df = pd.read_json(data, orient='records')
 
     contact_df.fillna("")
 
@@ -44,10 +44,10 @@ def contact_cleaning(ti):
     out = contact_df.to_json(orient="records")
     ti.xcom_push(key='contact_df', value=out)
     
-def facilities_cleaning(ti): #incomplete
-    data = ti.xcom_pull(key='data_location', task_ids='split_nested')
-    facilities_df = pd.DataFrame(data)
-    
+def facilities_cleaning(ti):
+    data = ti.xcom_pull(key='data_facility', task_ids='split_nested')
+    facilities_df = pd.read_json(data, orient='records')
+
     new_col = []
     for index, row in data.iterrows():
         tmp = []
@@ -66,16 +66,16 @@ def facilities_cleaning(ti): #incomplete
     out = facilities_df.to_json(orient="records")
     ti.xcom_push(key='facilities_df', value=out)
 
-def services_cleaning(ti): #incomplete
-    data = ti.xcom_pull(key='data_location', task_ids='split_nested')
-    services_df = pd.DataFrame(data)
+def services_cleaning(ti):
+    data = ti.xcom_pull(key='data_service', task_ids='split_nested')
+    services_df = pd.read_json(data, orient='records')
     
     out = services_df.to_json(orient="records")
     ti.xcom_push(key='services_df', value=out)
 
-def places_cleaning(ti): #incomplete
-    data = ti.xcom_pull(key='data_location', task_ids='split_nested')
-    places_df = pd.DataFrame(data)
+def places_cleaning(ti):
+    data = ti.xcom_pull(key='data_places', task_ids='split_nested')
+    places_df = pd.read_json(data, orient='records')
 
     out = places_df.to_json(orient="records")
     ti.xcom_push(key='places_df', value=out)
