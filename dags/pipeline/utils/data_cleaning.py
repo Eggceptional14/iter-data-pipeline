@@ -18,7 +18,8 @@ def location_cleaning(ti):
     for sub in subdis:
         location_df.sub_district = location_df.sub_district.replace(sub, sub.upper())
 
-    print(location_df[["province", "district", "sub_district"]].head(10))
+    # print(location_df[["province", "district", "sub_district"]].head(10))
+    print(location_df.head(10))
     out = location_df.to_json(orient="records")
 
     ti.xcom_push(key='location_df', value=out)
