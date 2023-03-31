@@ -18,6 +18,7 @@ def split_place_nested(ti):
 
     info = pd.json_normalize(place_df.place_information)
     info['place_id'] = place_df['place_id']
+    info['category_code'] = place_df['category_code']
     out_info = info.to_json(orient='records')
 
     ophr = pd.json_normalize(place_df.opening_hours)
