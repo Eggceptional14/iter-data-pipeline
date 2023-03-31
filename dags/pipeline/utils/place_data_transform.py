@@ -17,13 +17,120 @@ def info_data_cleaning(ti):
     data = ti.xcom_pull(key='data_info', task_ids='places_split')
     info_df = pd.read_json(data)
 
-    # combine intro and detail into description
-    info_df["description"] = info_df[["introduction", "detail"]].apply(" ".join, axis=1)
-    info_df.drop(columns=['introduction', 'detail'], inplace=True)
+    # transform place types
+    out = []
+    for items in info_df.accommodation_types:
+        temp = []
+        if type(items) == list:
+            for item in items:
+                if item != None:
+                    temp.append(item['description'])
 
+        if len(temp) != 0:
+            out.append(temp)
+        else:
+            out.append(None)
+
+    info_df.drop(columns=['accommodation_types'], inplace=True)
+    info_df['accommodation_types'] = out
+
+    out = []
+    for items in info_df.attraction_types:
+        temp = []
+        if type(items) == list:
+            for item in items:
+                if item != None:
+                    temp.append(item['description'])
+
+        if len(temp) != 0:
+            out.append(temp)
+        else:
+            out.append(None)
+
+    info_df.drop(columns=['attraction_types'], inplace=True)
+    info_df['attraction_types'] = out
+
+    out = []
+    for items in info_df.shop_types:
+        temp = []
+        if type(items) == list:
+            for item in items:
+                if item != None:
+                    temp.append(item['description'])
+
+        if len(temp) != 0:
+            out.append(temp)
+        else:
+            out.append(None)
+
+    info_df.drop(columns=['shop_types'], inplace=True)
+    info_df['shop_types'] = out
+
+    out = []
+    for items in info_df.restaurant_types:
+        temp = []
+        if type(items) == list:
+            for item in items:
+                if item != None:
+                    temp.append(item['description'])
+
+        if len(temp) != 0:
+            out.append(temp)
+        else:
+            out.append(None)
+
+    info_df.drop(columns=['restaurant_types'], inplace=True)
+    info_df['restaurant_types'] = out
+
+    # replace missing value
+    info_df.register_license_id.fillna("", inplace=True)
+
+    info_df.hotel_star.fillna("", inplace=True)
+
+    info_df.price_range.fillna('0', inplace=True)
+    info_df.price_range.replace("", 0, inplace=True)
+
+    info_df.number_of_rooms.fillna(0, inplace=True)
+
+    info_df.activities = info_df.activities.apply(lambda d: d if isinstance(d, list) else [])
+
+    info_df.display_checkout_time.fillna("", inplace=True)
+    info_df.display_checkin_time.fillna("", inplace=True)
+
+    # transform cuisine types column
+    out = []
+    for items in info_df.cuisine_types:
+        temp = []
+        if type(items) == list:
+            for item in items:
+                if item != None:
+                    temp.append(item['description'])
+
+        out.append(temp)
+
+    info_df.drop(columns=['cuisine_types'], inplace=True)
+    info_df['cuisine_types'] = out
+
+    # transforming fee table
+    fee = info_df[['place_id', 'fee.thai_child', 'fee.thai_adult', 'fee.foreigner_child', 'fee.foreigner_adult']].copy()
+    fee.rename(columns={'fee.thai_child': 'thai_child',
+                        'fee.thai_adult': 'thai_adult',
+                        'fee.foreigner_child': 'foreigner_child',
+                        'fee.foreigner_adult': 'foreigner_adult'}, 
+                        inplace=True)
+    fee.fillna(-1, inplace=True)
+    fee.replace('', -1, inplace=True)
+    fee.thai_child = fee.thai_child.apply(float)
+    fee.thai_adult = fee.thai_adult.apply(float)
+    fee.foreigner_child = fee.foreigner_child.apply(float)
+    fee.foreigner_adult = fee.foreigner_adult.apply(float)
+    
+    info_df.drop(columns=['place_type', 'fee.thai_child', 'fee.thai_adult', 'fee.foreigner_child', 'fee.foreigner_adult', 'targets'])
 
     out_info = info_df.to_json(orient='records')
     ti.xcom_push(value=out_info, key='info_cleaned')
+    out_fee = fee.to_json(orient='records')
+    ti.xcom_push(value=out_fee, key='fee_cleaned')
 
 def michelin_data_cleaning(ti):
     data = ti.xcom_pull(key='data_michelin', task_ids='places_split')
