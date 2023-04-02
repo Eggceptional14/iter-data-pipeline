@@ -63,6 +63,10 @@ def split_category(ti):
     df_place_final = df_p.drop(columns=['standard', 'awards', 'hit_score'])
     df_place_final['introduction'] = df_pif['introduction']
     df_place_final['detail'] = df_pif['detail']
+    # print(df_place_final.category_code.value_counts())
+    df_place_final = df_place_final[df_place_final.category_code != 'OTHER']
+    # print(df_place_final.category_code.value_counts())
+
 
     ti.xcom_push(key="data_accom", value=df_accom.to_json(orient='records'))
     ti.xcom_push(key="data_accom_type", value=df_accom_type.to_json(orient='records'))
