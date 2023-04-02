@@ -92,7 +92,7 @@ def info_data_cleaning(ti):
 
     info_df.number_of_rooms.fillna(0, inplace=True)
 
-    info_df.activities = info_df.activities.apply(lambda d: d if isinstance(d, list) else [])
+    # info_df.activities = info_df.activities.apply(lambda d: d if isinstance(d, list) else [])
 
     info_df.display_checkout_time.fillna("", inplace=True)
     info_df.display_checkin_time.fillna("", inplace=True)
@@ -125,8 +125,9 @@ def info_data_cleaning(ti):
     fee.foreigner_child = fee.foreigner_child.apply(float)
     fee.foreigner_adult = fee.foreigner_adult.apply(float)
     
-    info_df.drop(columns=['place_type', 'fee.thai_child', 'fee.thai_adult', 'fee.foreigner_child', 'fee.foreigner_adult', 'targets'])
+    info_df.drop(columns=['place_type', 'fee.thai_child', 'fee.thai_adult', 'fee.foreigner_child', 'fee.foreigner_adult'], inplace=True)
 
+    print(info_df.head(10))
     out_info = info_df.to_json(orient='records')
     ti.xcom_push(value=out_info, key='info_cleaned')
     out_fee = fee.to_json(orient='records')
@@ -142,6 +143,7 @@ def michelin_data_cleaning(ti):
     ml_df.drop(columns=['michelins'], inplace=True)
 
     print(ml_df.head())
+    print(ml_df.info())
     out_ml = ml_df.to_json(orient='records')
     ti.xcom_push(value=out_ml, key='room_cleaned')
 
