@@ -145,7 +145,7 @@ def michelin_data_cleaning(ti):
     print(ml_df.head())
     print(ml_df.info())
     out_ml = ml_df.to_json(orient='records')
-    ti.xcom_push(value=out_ml, key='room_cleaned')
+    ti.xcom_push(value=out_ml, key='mcl_cleaned')
 
 def ophr_data_cleaning(ti):
     data = ti.xcom_pull(key='data_ophr', task_ids='places_split')
