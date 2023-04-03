@@ -66,6 +66,9 @@ def facilities_cleaning(ti):
 
     facilities_df['description'] = new_col
     facilities_df = facilities_df.loc[:, ['place_id', 'description']]
+    facilities_df = facilities_df.explode('description')
+    facilities_df.reset_index(drop=True, inplace=True)
+    facilities_df = facilities_df[~facilities_df.description.isna()]
 
     print(facilities_df.head(10))
     out = facilities_df.to_json(orient="records")
@@ -85,6 +88,9 @@ def services_cleaning(ti):
 
     services_df['description'] = new_col
     services_df = services_df.loc[:, ['place_id', 'description']]
+    services_df = services_df.explode('description')
+    services_df.reset_index(drop=True, inplace=True)
+    services_df = services_df[~services_df.description.isna()]
     
     print(services_df.head(10))
     out = services_df.to_json(orient="records")
