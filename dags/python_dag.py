@@ -11,6 +11,7 @@ from pipeline.utils.data_cleaning import *
 from pipeline.utils.split_category import split_category
 from pipeline.utils.split_place_nested import split_place_nested
 from pipeline.utils.place_data_transform import *
+from pipeline.utils.database_update import upsert_data
 
 
 default_args = {
@@ -93,8 +94,12 @@ with DAG(
         task_id = 'room_cln',
         python_callable=room_data_cleaning
     )
+    task_upsert = PythonOperator(
+        task_id = 'upsert_data',
+        python_callable=upsert_data
+    )
 
 task_get_raw_data >> task_get_detail >> task_split_nested
 task_split_nested >> [task_location_cln, task_sha_cln, task_contact_cln, task_facilities_cln, task_services_cln]
 task_split_nested >> task_places_cln >> task_places_split
-task_places_split >> [task_tag_cln, task_inf_cln, task_mcl_cln, task_ophr_cln, task_room_cln] >> task_split_category
+task_places_split >> [task_tag_cln, task_inf_cln, task_mcl_cln, task_ophr_cln, task_room_cln] >> task_split_category >> task_upsert
