@@ -21,8 +21,10 @@ def split_category(ti):
 
     # print(df_accom.info())
     df_accom_type = df_pif[is_type_accom & (~df_pif.accommodation_types.isna())][['place_id', 'accommodation_types']].copy()
+    df_accom_type = df_accom_type[~df_accom_type.accommodation_types.isna()].explode('accommodation_types')
+    df_accom_type.reset_index(drop=True, inplace=True)
     df_accom_type.rename(columns={'accommodation_types': 'description'}, inplace=True)
-    # print(type(df_accom_type.description[0]))
+    # print(df_accom_type.head())
 
     #split to attraction and its related tables
     is_type_attr = df_pif.category_code == 'ATTRACTION'
@@ -30,7 +32,10 @@ def split_category(ti):
     df_attr = df_p[is_type_attr][['place_id', 'hit_score']].copy()
 
     df_attr_type = df_pif[is_type_attr & (~df_pif.attraction_types.isna())][['place_id', 'attraction_types']].copy()
+    df_attr_type = df_attr_type[~df_attr_type.attraction_types.isna()].explode('attraction_types')
+    df_attr_type.reset_index(drop=True, inplace=True)
     df_attr_type.rename(columns={'attraction_types': 'description'}, inplace=True)
+    # print(df_attr_type.head())
 
     #split to restaurant and its related tables
     is_type_res = df_pif.category_code == 'RESTAURANT'
@@ -38,10 +43,18 @@ def split_category(ti):
     df_res = df_p[is_type_res][['place_id', 'standard', 'awards', 'hit_score']]
 
     df_res_type = df_pif[is_type_res & (~df_pif.restaurant_types.isna())][['place_id', 'restaurant_types']].copy()
+    df_res_type = df_res_type[~df_res_type.restaurant_types.isna()].explode('restaurant_types')
+    df_res_type.reset_index(drop=True, inplace=True)
     df_res_type.rename(columns={'restaurant_types': 'description'}, inplace=True)
+    # print(df_res_type.head())
+
 
     df_cuisine_type = df_pif[is_type_res][['place_id', 'cuisine_types']].copy()
+    df_cuisine_type = df_cuisine_type[~df_cuisine_type.cuisine_types.isna()].explode('cuisine_types')
+    df_cuisine_type.reset_index(drop=True, inplace=True)
     df_cuisine_type.rename(columns={'cuisine_types': 'description'}, inplace=True)
+    df_cuisine_type = df_cuisine_type[~df_cuisine_type.description.isna()]
+    # print(df_cuisine_type.info())
 
     #split to shop and its related tables
     is_type_shop = df_pif.category_code == 'SHOP'
@@ -49,15 +62,24 @@ def split_category(ti):
     df_shop = df_p[is_type_shop][['place_id', 'standard']]
 
     df_shop_type = df_pif[is_type_shop & (~df_pif.shop_types.isna())][['place_id', 'shop_types']].copy()
+    df_shop_type = df_shop_type[~df_shop_type.shop_types.isna()].explode('shop_types')
+    df_shop_type.reset_index(drop=True, inplace=True)
     df_shop_type.rename(columns={'shop_types': 'description'}, inplace=True)
+    # print(df_shop_type.head())
 
     #split target table
     df_target = df_pif[~df_pif.targets.isna()][['place_id', 'targets']].copy()
+    df_target = df_target.explode('targets')
+    df_target.reset_index(drop=True, inplace=True)
     df_target.rename(columns={'targets': 'description'}, inplace=True)
+    # print(df_target.head())
 
     #split activity table
     df_activity = df_pif[~df_pif.activities.isna()][['place_id', 'activities']].copy()
+    df_activity = df_activity.explode('activities')
+    df_activity.reset_index(drop=True, inplace=True)
     df_activity.rename(columns={'activities': 'description'}, inplace=True)
+    # print(df_activity.head())
 
     #create place table
     df_place_final = df_p.drop(columns=['standard', 'awards', 'hit_score'])
@@ -75,7 +97,7 @@ def split_category(ti):
     ti.xcom_push(key="data_attr_type", value=df_attr_type.to_json(orient='records'))
 
     ti.xcom_push(key="data_res", value=df_res.to_json(orient='records'))
-    # ti.xcom_push(key="data_res_type", value=df_res_type.to_json(orient='records'))
+    ti.xcom_push(key="data_res_type", value=df_res_type.to_json(orient='records'))
     ti.xcom_push(key="data_cuisine_type", value=df_cuisine_type.to_json(orient='records'))
 
     ti.xcom_push(key="data_shop", value=df_shop.to_json(orient='records'))
