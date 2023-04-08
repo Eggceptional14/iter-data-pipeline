@@ -15,3 +15,5 @@ pipeline {
                 sh 'docker-compose -f Docker-compose.prod.yml up -d'
             }
         }
+    }
+}
