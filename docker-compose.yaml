@@ -92,7 +92,7 @@ services:
       POSTGRES_PASSWORD: data
       POSTGRES_DB: data
     ports:
-      - "5433:5432"
+      - "54330:5432"
     volumes:
       - postgres-data-volume:/var/lib/postgresql/data
     healthcheck:
@@ -116,7 +116,7 @@ services:
     <<: *airflow-common
     command: webserver
     ports:
-      - 8080:8080
+      - 9876:8080
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 10s
