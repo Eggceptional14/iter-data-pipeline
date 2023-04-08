@@ -9,6 +9,7 @@ def split_nested(ti):
     for d in data:
         data_casted.append(json.loads(d))
     place_df = pd.DataFrame.from_records(data_casted)
+    place_df = place_df[place_df.category_code != 'OTHER']
 
     location = pd.json_normalize(place_df.location)
     location['place_id'] = place_df['place_id']

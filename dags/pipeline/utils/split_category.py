@@ -86,7 +86,7 @@ def split_category(ti):
     df_place_final['introduction'] = df_pif['introduction']
     df_place_final['detail'] = df_pif['detail']
     # print(df_place_final.category_code.value_counts())
-    df_place_final = df_place_final[df_place_final.category_code != 'OTHER']
+    # df_place_final = df_place_final[df_place_final.category_code != 'OTHER']
     # print(df_place_final.category_code.value_counts())
 
 
