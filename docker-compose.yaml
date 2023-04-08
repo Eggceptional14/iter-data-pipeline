@@ -92,7 +92,7 @@ services:
       POSTGRES_PASSWORD: data
       POSTGRES_DB: data
     ports:
-      - "5433:5432"
+      - "54330:5432"
     volumes:
       - postgres-data-volume:/var/lib/postgresql/data
     healthcheck:
