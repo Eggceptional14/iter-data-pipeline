@@ -125,7 +125,7 @@ def info_data_cleaning(ti):
     fee.foreigner_child = fee.foreigner_child.apply(float)
     fee.foreigner_adult = fee.foreigner_adult.apply(float)
     
-    info_df.drop(columns=['place_type', 'fee.thai_child', 'fee.thai_adult', 'fee.foreigner_child', 'fee.foreigner_adult'], inplace=True)
+    info_df.drop(columns=['fee.thai_child', 'fee.thai_adult', 'fee.foreigner_child', 'fee.foreigner_adult'], inplace=True)
 
     print(info_df.head(10))
     out_info = info_df.to_json(orient='records')
