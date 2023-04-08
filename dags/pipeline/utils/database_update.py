@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 
 def upsert_data(ti):
     try:
-        db = create_engine('postgresql://data:data@192.168.1.110:5433/data', client_encoding='utf8')
+        db = create_engine('postgresql://data:data@postgres-data/data', client_encoding='utf8')
         conn = db.connect()
 
         conn.execute("DROP TABLE IF EXISTS place, accommodation, attraction, shop, restaurant CASCADE")
