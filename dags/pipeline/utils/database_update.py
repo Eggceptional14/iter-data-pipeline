@@ -5,22 +5,8 @@ from sqlalchemy import create_engine
 
 def upsert_data(ti):
     try:
-        conn_postgres = psycopg2.connect(
-            host="postgres-data",
-            database="data",
-            user="data",
-            password="data"
-        )
-        
-        db = create_engine('postgresql+psycopg2', creator=lambda: conn_postgres)
+        db = create_engine('postgresql://data:data@postgres-data/data', client_encoding='utf8')
         conn = db.connect()
-        '''
-        Pun's Code
-        '''
-        # conn_string = "postgresql://data:data@192.168.1.110:5433/data"
-        # conn_string = "postgresql://data:data@postgres-data:5433/data"
-        # db = create_engine(conn)
-        # conn = db.connect()
 
         conn.execute("DROP TABLE IF EXISTS place, accommodation, attraction, shop, restaurant CASCADE")
 
