@@ -20,6 +20,7 @@ def location_cleaning(ti):
 
     # print(location_df[["province", "district", "sub_district"]].head(10))
     print(location_df.head(10))
+    location_df = location_df[~location_df.place_id.isna()]
     out = location_df.to_json(orient="records")
 
     ti.xcom_push(key='location_df', value=out)
@@ -31,6 +32,7 @@ def sha_cleaning(ti):
     sha_df.drop(sha_df[sha_df['sha_name'] == ""].index, inplace=True)
 
     print(sha_df.head(10))
+    sha_df = sha_df[~sha_df.place_id.isna()]
     out = sha_df.to_json(orient="records")
     ti.xcom_push(key='sha_df', value=out)
     
@@ -48,6 +50,7 @@ def contact_cleaning(ti):
     contact_df.fax = contact_df.fax.fillna("")
 
     print(contact_df.head(10))
+    contact_df = contact_df[~contact_df.place_id.isna()]
     out = contact_df.to_json(orient="records")
     ti.xcom_push(key='contact_df', value=out)
     
@@ -71,6 +74,7 @@ def facilities_cleaning(ti):
     facilities_df = facilities_df[~facilities_df.description.isna()]
 
     print(facilities_df.head(10))
+    facilities_df = facilities_df[~facilities_df.place_id.isna()]
     out = facilities_df.to_json(orient="records")
     ti.xcom_push(key='facilities_df', value=out)
 
@@ -93,6 +97,7 @@ def services_cleaning(ti):
     services_df = services_df[~services_df.description.isna()]
     
     print(services_df.head(10))
+    services_df = services_df[~services_df.place_id.isna()]
     out = services_df.to_json(orient="records")
     ti.xcom_push(key='services_df', value=out)
 
