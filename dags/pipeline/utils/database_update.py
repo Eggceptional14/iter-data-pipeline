@@ -5,6 +5,7 @@ from sqlalchemy import create_engine
 
 def upsert_data(ti):
     try:
+
         db = create_engine('postgresql://data:data@postgres-data/data', client_encoding='utf8')
         conn = db.connect()
 
@@ -97,7 +98,7 @@ def upsert_data(ti):
                      b WHERE a.place_id = b.place_id AND a.room_type = b.room_type AND a.bed_type = b.bed_type AND a.ctid <> b.ctid")
         # add constraints
         conn.execute("ALTER TABLE accommodation_room ADD PRIMARY KEY (place_id, room_type, bed_type),\
-                      ADD CONSTRAINT fk_place_id FOREIGN KEY(place_id) REFERENCES place(place_id)")
+                      ADD CONSTRAINT fk_place_id FOREIGN KEY(place_id) REFERENCES accommodation(place_id)")
 
         df_to_sql(ti.xcom_pull(key="data_attr", task_ids="split_category"), 'attraction', conn)
         # remove duplicate rows (if exists)
