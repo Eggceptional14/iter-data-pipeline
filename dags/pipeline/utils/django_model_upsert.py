@@ -3,6 +3,9 @@ import pandas as pd
 
 
 def place_upsert(ti):
+    place_objs = place_format_transform(ti)
+
+def place_format_transform(ti):
     # load place data from downstream tasks
     data_place = json.loads(ti.xcom_pull(key="data_place_fv", task_ids="split_category"))
     data_sha = json.loads(ti.xcom_pull(key="sha_df", task_ids="sha_cln"))
@@ -91,5 +94,7 @@ def place_upsert(ti):
             'services': service_data
         })
 
-    json_formatted_str = json.dumps(output[0], indent=2)
-    print(json_formatted_str)
+    # json_formatted_str = json.dumps(output[0], indent=2)
+    # print(json_formatted_str)
+
+    return output
