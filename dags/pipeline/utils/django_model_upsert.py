@@ -74,7 +74,7 @@ def place_format_transform(ti):
         
         # append json object
         output.append({
-            'id': place_id,
+            'place_id': place_id,
             'place_name': place['place_name'],
             'latitude': place['latitude'],
             'longitude': place['longitude'],
