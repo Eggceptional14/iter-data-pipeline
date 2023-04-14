@@ -4,6 +4,8 @@ import pandas as pd
 
 def place_upsert(ti):
     place_objs = place_format_transform(ti)
+    restaurant_objs = restaurant_format_transform(ti, place_objs)
+
 
 def place_format_transform(ti):
     # load place data from downstream tasks
@@ -98,3 +100,48 @@ def place_format_transform(ti):
     # print(json_formatted_str)
 
     return output
+
+def restaurant_format_transform(ti, place_json):
+    data_pif = ti.xcom_pull(key='info_cleaned', task_ids='inf_cln')
+    data_p = ti.xcom_pull(key='data_places', task_ids='places_split')
+    data_tag = ti.xcom_pull(key="tag_cleaned", task_ids="tag_cln")
+    data_ophr = ti.xcom_pull(key="ophr_cleaned", task_ids="ophr_cln")
+    data_mchl = ti.xcom_pull(key="mcl_cleaned", task_ids="mcl_cln")
+
+    df_place = pd.DataFrame(place_json)
+    df_p = pd.read_json(data_p, orient='records')
+    df_pinfo = pd.read_json(data_pif, orient='records')
+    df_rinfo = df_pinfo[df_pinfo.category_code == 'RESTAURANT']
+
+    df_place['standard'] = df_p['standard'].copy()
+    df_place['hit_score'] = df_p['hit_score'].copy()
+    df_place['awards'] = df_p['awards'].copy()
+    df_place['restaurant_types'] = df_rinfo['restaurant_types'].copy()
+    df_place['cuisine_types'] = df_rinfo['cuisine_types'].copy()
+
+    df_restaurant = df_place[df_place.category_code == 'RESTAURANT']
+
+    # rst_list = df_restaurant.to_json(orient='records')
+    
+    df_tag = pd.read_json(data_tag, orient='records')
+    df_tag = df_tag.groupby(['place_id']).agg({'description': list}).reset_index()
+    
+    df_restaurant = pd.merge(df_restaurant, df_tag, on='place_id', how='left')
+    df_restaurant.rename(columns={'description': 'tags'}, inplace=True)
+    # print(df_restaurant.info())
+
+    df_ophr = pd.read_json(data_ophr, orient='records')
+    grouped = df_ophr.groupby(['place_id']).apply(lambda x: x[['day', 'opening_time', 'closing_time']].apply(row_to_dict, axis=1).tolist()).reset_index(name='opening_hours')
+    df_restaurant = pd.merge(df_restaurant, grouped, on='place_id', how='left')
+    # print(df_rinfo.info())
+    # print(df_restaurant[['place_name', 'opening_hours']])
+
+    df_mchl = pd.read_json(data_mchl, orient='records')
+    grouped = df_mchl.groupby(['place_id']).apply(lambda x: x[['name', 'year']].apply(row_to_dict, axis=1).tolist()).reset_index(name='michelins')
+    df_restaurant = pd.merge(df_restaurant, grouped, on='place_id', how='left')
+    # print(list(df_restaurant[~df_restaurant.michelins.isna()].head(1).michelins))
+
+    return df_restaurant.to_json(orient='records')
+
+def row_to_dict(row):
+    return row.to_dict()
