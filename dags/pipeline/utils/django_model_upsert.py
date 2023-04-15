@@ -1,9 +1,53 @@
 import json
 import pandas as pd
+import requests
+
+def get_token():
+    '''
+    Helper function to get token to make requests
+    '''
+    # Define the login endpoint URL and payload
+    url = "http://dev.se.kmitl.ac.th:1337/api/user/login/"
+    payload = {"email": "testToken@example.com", "password": "password_testtoken"}
+
+    # Send the POST request to the login endpoint
+    response = requests.post(url, json=payload)
+
+    # If the request was successful, extract the access token from the response and store it in a variable
+    if response.status_code == 200:
+        token = response.json().get("token").get("access")
+        return token
+    else:
+        # If the request failed, print an error message and return None
+        print(f"Error: {response.status_code} - {response.reason}")
+        return None
+    
+def create_place(token, payload_request):
+    '''
+    API request to create a place in the django server at port 1337
+    '''
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    }
+
+    payload = payload_request
+
+    response = requests.post('http://dev.se.kmitl.ac.th:1337/api/places/', headers=headers, json=payload)
+
+    if response.status_code == 201:
+        print('Place created successfully!')
+    else:
+        print('Error creating place:', response.content)
 
 
 def place_upsert(ti):
     place_objs = place_format_transform(ti)
+    '''
+    Code to create places via an api request to the django server on dev.se.kmitl.ac.th
+    '''
+    token = get_token()
+    create_place(token, place_objs)
     restaurant_objs = restaurant_format_transform(ti, place_objs)
     accomm_objs = accommodation_format_transform(ti, place_objs)
     attraction_objs = attraction_format_transform(ti, place_objs)
