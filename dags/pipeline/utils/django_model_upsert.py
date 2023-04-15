@@ -181,6 +181,47 @@ def accommodation_format_transform(ti, place_json):
 
     return df_acm.to_dict('records')
 
+def attraction_format_transform(ti, place_json):
+    data_pif = ti.xcom_pull(key='info_cleaned', task_ids='inf_cln')
+    data_p = ti.xcom_pull(key='data_places', task_ids='places_split')
+    data_tag = ti.xcom_pull(key="tag_cleaned", task_ids="tag_cln")
+    data_ophr = ti.xcom_pull(key="ophr_cleaned", task_ids="ophr_cln")
+    data_fee = ti.xcom_pull(key="fee_cleaned", task_ids="inf_cln")
+
+    df_place = pd.DataFrame(place_json)
+    df_p = pd.read_json(data_p, orient='records')
+    df_pinfo = pd.read_json(data_pif, orient='records')
+    # df_atrinfo = df_pinfo[df_pinfo.category_code == 'ATTRACTION']
+
+    df_place['hit_score'] = df_p['hit_score'].copy()
+    df_place['attraction_types'] = df_pinfo['attraction_types'].copy()
+
+    df_atr = df_place[df_place.category_code == 'ATTRACTION']
+
+    df_tag = pd.read_json(data_tag, orient='records')
+    df_tag = df_tag.groupby(['place_id']).agg({'description': list}).reset_index()
+    df_atr = pd.merge(df_atr, df_tag, on='place_id', how='left')
+    df_atr.rename(columns={'description': 'tags'}, inplace=True)
+
+    df_fee = pd.read_json(data_fee, orient='records')
+    df_atr = pd.merge(df_atr, df_fee, on='place_id', how='left')
+    df_atr['fee'] = (df_atr[['thai_child', 'thai_adult', 'foreigner_child', 'foreigner_adult']]
+                     .apply(lambda x: {'thai_child': x['thai_child'], 'thai_adult': x['thai_adult'],
+                                       'foreigner_child': x['foreigner_child'], 'foreigner_adult': x['foreigner_adult']}, axis=1))
+    df_atr.drop(columns=['thai_child', 'thai_adult', 'foreigner_child', 'foreigner_adult'], inplace=True)
+
+    df_atr = pd.merge(df_atr, df_pinfo[['place_id', 'activities', 'targets']], on='place_id', how='left')
+
+    df_ophr = pd.read_json(data_ophr, orient='records')
+    grouped = df_ophr.groupby(['place_id']).apply(lambda x: x[['day', 'opening_time', 'closing_time']].apply(row_to_dict, axis=1).tolist()).reset_index(name='opening_hours')
+    df_atr = pd.merge(df_atr, grouped, on='place_id', how='left')
+
+    # temp = df_atr[~df_atr.activities.isna() & ~df_atr.targets.isna()].to_dict('records')
+    # print(json.dumps(temp[0], indent=2, cls=NpEncoder))
+    # print(df_pinfo.info())
+    # print(df_atr.info())
+
+
 
     return df_restaurant.to_json(orient='records')
 
