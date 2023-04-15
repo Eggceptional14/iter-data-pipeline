@@ -114,7 +114,6 @@ def restaurant_format_transform(ti, place_json):
     df_place = pd.DataFrame(place_json)
     df_p = pd.read_json(data_p, orient='records')
     df_pinfo = pd.read_json(data_pif, orient='records')
-    df_rinfo = df_pinfo[df_pinfo.category_code == 'RESTAURANT']
 
     df_place['standard'] = df_p['standard'].copy()
     df_place['hit_score'] = df_p['hit_score'].copy()
