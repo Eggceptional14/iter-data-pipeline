@@ -223,9 +223,36 @@ def attraction_format_transform(ti, place_json):
 
     return df_atr.to_dict('records')
 
+def shop_format_transform(ti, place_json):
+    data_pif = ti.xcom_pull(key='info_cleaned', task_ids='inf_cln')
+    data_p = ti.xcom_pull(key='data_places', task_ids='places_split')
+    data_tag = ti.xcom_pull(key="tag_cleaned", task_ids="tag_cln")
+    data_ophr = ti.xcom_pull(key="ophr_cleaned", task_ids="ophr_cln")
 
+    df_place = pd.DataFrame(place_json)
+    df_p = pd.read_json(data_p, orient='records')
+    df_pinfo = pd.read_json(data_pif, orient='records')
 
-    return df_restaurant.to_json(orient='records')
+    df_place['standard'] = df_p['standard'].copy()
+    df_place['shop_types'] = df_pinfo['shop_types'].copy()
+
+    df_shop = df_place[df_place.category_code == 'SHOP']
+
+    df_tag = pd.read_json(data_tag, orient='records')
+    df_tag = df_tag.groupby(['place_id']).agg({'description': list}).reset_index()
+    df_shop = pd.merge(df_shop, df_tag, on='place_id', how='left')
+    df_shop.rename(columns={'description': 'tags'}, inplace=True)
+
+    df_ophr = pd.read_json(data_ophr, orient='records')
+    grouped = df_ophr.groupby(['place_id']).apply(lambda x: x[['day', 'opening_time', 'closing_time']].apply(row_to_dict, axis=1).tolist()).reset_index(name='opening_hours')
+    df_shop = pd.merge(df_shop, grouped, on='place_id', how='left')
+
+    # temp = df_shop[~df_shop.shop_types.isna()].to_dict('records')
+    # print(json.dumps(temp[0], indent=2, cls=NpEncoder))
+    # print(df_pinfo.info())
+    # print(df_shop.info())
+
+    return df_shop.to_dict('records')
 
 def row_to_dict(row):
     return row.to_dict()
