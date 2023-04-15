@@ -118,8 +118,8 @@ def restaurant_format_transform(ti, place_json):
     df_place['standard'] = df_p['standard'].copy()
     df_place['hit_score'] = df_p['hit_score'].copy()
     df_place['awards'] = df_p['awards'].copy()
-    df_place['restaurant_types'] = df_rinfo['restaurant_types'].copy()
-    df_place['cuisine_types'] = df_rinfo['cuisine_types'].copy()
+    df_place['restaurant_types'] = df_pinfo['restaurant_types'].copy()
+    df_place['cuisine_types'] = df_pinfo['cuisine_types'].copy()
 
     df_restaurant = df_place[df_place.category_code == 'RESTAURANT']
 
