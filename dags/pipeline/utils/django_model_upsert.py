@@ -141,7 +141,46 @@ def restaurant_format_transform(ti, place_json):
     df_mchl = pd.read_json(data_mchl, orient='records')
     grouped = df_mchl.groupby(['place_id']).apply(lambda x: x[['name', 'year']].apply(row_to_dict, axis=1).tolist()).reset_index(name='michelins')
     df_restaurant = pd.merge(df_restaurant, grouped, on='place_id', how='left')
-    # print(list(df_restaurant[~df_restaurant.michelins.isna()].head(1).michelins))
+    # temp = df_restaurant[~df_restaurant.michelins.isna()].to_dict('records')
+    # print(json.dumps(temp[0], indent=2))
+
+    return df_restaurant.to_dict('records')
+
+def accommodation_format_transform(ti, place_json):
+    data_pif = ti.xcom_pull(key='info_cleaned', task_ids='inf_cln')
+    data_p = ti.xcom_pull(key='data_places', task_ids='places_split')
+    data_room = ti.xcom_pull(key='room_cleaned', task_ids="room_cln")
+
+    df_place = pd.DataFrame(place_json)
+    df_p = pd.read_json(data_p, orient='records')
+    df_pinfo = pd.read_json(data_pif, orient='records')
+    # df_rinfo = df_pinfo[df_pinfo.category_code == 'RESTAURANT']
+
+    df_place['standard'] = df_p['standard'].copy()
+    df_place['hit_score'] = df_p['hit_score'].copy()
+    df_place['awards'] = df_p['awards'].copy()
+
+    df_place['register_license_id'] = df_pinfo['register_license_id'].copy()
+    df_place['hotel_star'] = df_pinfo['hotel_star'].copy()
+    df_place['display_checkin_time'] = df_pinfo['display_checkin_time'].copy()
+    df_place['display_checkout_time'] = df_pinfo['display_checkout_time'].copy()
+    df_place['number_of_rooms'] = df_pinfo['number_of_rooms'].copy()
+    df_place['price_range'] = df_pinfo['price_range'].copy()
+    df_place['accommodation_types'] = df_pinfo['accommodation_types'].copy()
+
+    df_acm = df_place[df_place.category_code == 'ACCOMMODATION']
+
+    df_room = pd.read_json(data_room, orient='records')
+    grouped = df_room.groupby(['place_id']).apply(lambda x: x[['room_type', 'bed_type']].apply(row_to_dict, axis=1).tolist()).reset_index(name='accommodation_rooms')
+    df_acm = pd.merge(df_acm, grouped, on='place_id', how='left')
+
+    # temp = df_acm[~df_acm.accommodation_rooms.isna()]
+    # temp['display_checkin_time'] = temp['display_checkin_time'].astype(str)
+    # temp['display_checkout_time'] = temp['display_checkout_time'].astype(str)
+    # print(json.dumps(temp.to_dict('records')[0], indent=2, cls=NpEncoder))
+
+    return df_acm.to_dict('records')
+
 
     return df_restaurant.to_json(orient='records')
 
