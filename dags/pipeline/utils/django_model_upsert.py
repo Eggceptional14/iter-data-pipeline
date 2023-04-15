@@ -221,6 +221,8 @@ def attraction_format_transform(ti, place_json):
     # print(df_pinfo.info())
     # print(df_atr.info())
 
+    return df_atr.to_dict('records')
+
 
 
     return df_restaurant.to_json(orient='records')
