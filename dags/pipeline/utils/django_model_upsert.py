@@ -5,7 +5,10 @@ import pandas as pd
 def place_upsert(ti):
     place_objs = place_format_transform(ti)
     restaurant_objs = restaurant_format_transform(ti, place_objs)
-
+    accomm_objs = accommodation_format_transform(ti, place_objs)
+    attraction_objs = attraction_format_transform(ti, place_objs)
+    shop_objs = shop_format_transform(ti, place_objs)
+    # print(json.dumps(attraction_objs[0], indent=2, cls=NpEncoder))
 
 def place_format_transform(ti):
     # load place data from downstream tasks
