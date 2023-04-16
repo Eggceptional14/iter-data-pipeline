@@ -142,11 +142,11 @@ def place_format_transform(ti):
             'facilities': facility_data,
             'services': service_data
         })
-
+    output = pd.DataFrame(output)
     # json_formatted_str = json.dumps(output[0], indent=2)
     # print(json_formatted_str)
 
-    return output
+    return output.to_json(orient='records')
 
 def restaurant_format_transform(ti, place_json):
     data_pif = ti.xcom_pull(key='info_cleaned', task_ids='inf_cln')
@@ -155,7 +155,7 @@ def restaurant_format_transform(ti, place_json):
     data_ophr = ti.xcom_pull(key="ophr_cleaned", task_ids="ophr_cln")
     data_mchl = ti.xcom_pull(key="mcl_cleaned", task_ids="mcl_cln")
 
-    df_place = pd.DataFrame(place_json)
+    df_place = pd.read_json(place_json, orient='records')
     df_p = pd.read_json(data_p, orient='records')
     df_pinfo = pd.read_json(data_pif, orient='records')
 
@@ -188,14 +188,14 @@ def restaurant_format_transform(ti, place_json):
     # temp = df_restaurant[~df_restaurant.michelins.isna()].to_dict('records')
     # print(json.dumps(temp[0], indent=2))
 
-    return df_restaurant.to_dict('records')
+    return df_restaurant.to_json(orient='records')
 
 def accommodation_format_transform(ti, place_json):
     data_pif = ti.xcom_pull(key='info_cleaned', task_ids='inf_cln')
     data_p = ti.xcom_pull(key='data_places', task_ids='places_split')
     data_room = ti.xcom_pull(key='room_cleaned', task_ids="room_cln")
 
-    df_place = pd.DataFrame(place_json)
+    df_place = pd.read_json(place_json, orient='records')
     df_p = pd.read_json(data_p, orient='records')
     df_pinfo = pd.read_json(data_pif, orient='records')
     # df_rinfo = df_pinfo[df_pinfo.category_code == 'RESTAURANT']
@@ -223,7 +223,7 @@ def accommodation_format_transform(ti, place_json):
     # temp['display_checkout_time'] = temp['display_checkout_time'].astype(str)
     # print(json.dumps(temp.to_dict('records')[0], indent=2, cls=NpEncoder))
 
-    return df_acm.to_dict('records')
+    return df_acm.to_json(orient='records')
 
 def attraction_format_transform(ti, place_json):
     data_pif = ti.xcom_pull(key='info_cleaned', task_ids='inf_cln')
@@ -232,7 +232,7 @@ def attraction_format_transform(ti, place_json):
     data_ophr = ti.xcom_pull(key="ophr_cleaned", task_ids="ophr_cln")
     data_fee = ti.xcom_pull(key="fee_cleaned", task_ids="inf_cln")
 
-    df_place = pd.DataFrame(place_json)
+    df_place = pd.read_json(place_json, orient='records')
     df_p = pd.read_json(data_p, orient='records')
     df_pinfo = pd.read_json(data_pif, orient='records')
     # df_atrinfo = df_pinfo[df_pinfo.category_code == 'ATTRACTION']
@@ -265,7 +265,7 @@ def attraction_format_transform(ti, place_json):
     # print(df_pinfo.info())
     # print(df_atr.info())
 
-    return df_atr.to_dict('records')
+    return df_atr.to_json(orient='records')
 
 def shop_format_transform(ti, place_json):
     data_pif = ti.xcom_pull(key='info_cleaned', task_ids='inf_cln')
@@ -273,7 +273,7 @@ def shop_format_transform(ti, place_json):
     data_tag = ti.xcom_pull(key="tag_cleaned", task_ids="tag_cln")
     data_ophr = ti.xcom_pull(key="ophr_cleaned", task_ids="ophr_cln")
 
-    df_place = pd.DataFrame(place_json)
+    df_place = pd.read_json(place_json, orient='records')
     df_p = pd.read_json(data_p, orient='records')
     df_pinfo = pd.read_json(data_pif, orient='records')
 
@@ -296,7 +296,7 @@ def shop_format_transform(ti, place_json):
     # print(df_pinfo.info())
     # print(df_shop.info())
 
-    return df_shop.to_dict('records')
+    return df_shop.to_json(orient='records')
 
 def row_to_dict(row):
     return row.to_dict()
