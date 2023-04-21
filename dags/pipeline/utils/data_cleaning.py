@@ -109,9 +109,9 @@ def places_cleaning(ti):
     places_df.latitude.fillna(91, inplace=True)
     places_df.longitude.fillna(181, inplace=True)
 
-    # replace missing urls with empty string
-    places_df.web_picture_urls.fillna("", inplace=True)
-    places_df.mobile_picture_urls.fillna("", inplace=True)
+    # replace missing urls with empty list
+    places_df.web_picture_urls = places_df.web_picture_urls.apply(lambda d: d if isinstance(d, list) else [])
+    places_df.mobile_picture_urls = places_df.mobile_picture_urls.apply(lambda d: d if isinstance(d, list) else [])
 
     # replace missing hit_score with -1
     places_df.hit_score.fillna(-1.0, inplace=True)
@@ -129,7 +129,7 @@ def places_cleaning(ti):
     places_df.drop(columns=['payment_methods'], inplace=True)
     places_df['payment_methods'] = new_col
 
-    # fill how to travel missing value with empty string
+    # fill how to travel missing value with empty list
     places_df.how_to_travel = places_df.how_to_travel.apply(lambda d: d if isinstance(d, list) else [])
 
     # fill standard missing value with empty string
