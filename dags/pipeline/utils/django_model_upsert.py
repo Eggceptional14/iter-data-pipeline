@@ -6,20 +6,25 @@ def get_token():
     '''
     Helper function to get token to make requests
     '''
-    # Define the login endpoint URL and payload
-    url = "http://dev.se.kmitl.ac.th:1337/api/user/login/"
-    payload = {"email": "testToken@example.com", "password": "password_testtoken"}
+    try:
+        # Define the login endpoint URL and payload
+        url = "http://dev.se.kmitl.ac.th:1337/api/user/login/"
+        payload = {"email": "admin@iter.com", "password": "admin"}
 
-    # Send the POST request to the login endpoint
-    response = requests.post(url, json=payload)
+        # Send the POST request to the login endpoint
+        response = requests.post(url, json=payload)
 
-    # If the request was successful, extract the access token from the response and store it in a variable
-    if response.status_code == 200:
-        token = response.json().get("token").get("access")
-        return token
-    else:
-        # If the request failed, print an error message and return None
-        print(f"Error: {response.status_code} - {response.reason}")
+        # If the request was successful, extract the access token from the response and store it in a variable
+        if response.status_code == 200:
+            token = response.json().get("token").get("access")
+            return token
+        else:
+            # If the request failed, print an error message and return None
+            print(f"Error: {response.status_code} - {response.reason}")
+            return None
+
+    except Exception as e:
+        print(f"An error occurred while trying to get the token: {e}")
         return None
     
 def create_place(token, payload_request):
@@ -40,18 +45,52 @@ def create_place(token, payload_request):
     else:
         print('Error creating place:', response.content)
 
+# def create_place(token, payload_request, batch_size=100):
+#     '''
+#     API request to create a place in the django server at port 1337
+#     '''
+#     headers = {
+#         'Authorization': f'Bearer {token}',
+#         'Content-Type': 'application/json'
+#     }
+
+#     for i in range(0, len(payload_request), batch_size):
+#         batch_payload = payload_request[i:i+batch_size]
+#         response = requests.post('http://dev.se.kmitl.ac.th:1337/api/places/', headers=headers, json=batch_payload)
+
+#         if response.status_code == 201:
+#             print(f'Batch {i/batch_size + 1} of {len(payload_request)/batch_size} created successfully!')
+#         else:
+#             print('Error creating batch:', response.content)
+
 
 def place_upsert(ti):
+    # Set the batch size for making a request
+    batch_size = 1000
+
     place_objs = place_format_transform(ti)
     '''
     Code to create places via an api request to the django server on dev.se.kmitl.ac.th
     '''
     token = get_token()
-    create_place(token, place_objs)
-    restaurant_objs = restaurant_format_transform(ti, place_objs)
-    accomm_objs = accommodation_format_transform(ti, place_objs)
-    attraction_objs = attraction_format_transform(ti, place_objs)
-    shop_objs = shop_format_transform(ti, place_objs)
+    places_json = json.loads(place_objs)
+    print(places_json[0])
+    print(f"To check if places dumps is correct: {json.dumps(places_json[0])}")
+
+    for i in range(0, len(places_json)):
+        try:
+            print(f"Current place being created: {places_json[i]}")
+            create_place(token, places_json[i])
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 500:
+                print(f"Skipping place {i} because it already exists")
+            else:
+                print(f"Error creating place {i}: {e}")
+    
+    # restaurant_objs = restaurant_format_transform(ti, place_objs)
+    # accomm_objs = accommodation_format_transform(ti, place_objs)
+    # attraction_objs = attraction_format_transform(ti, place_objs)
+    # shop_objs = shop_format_transform(ti, place_objs)
     # print(json.dumps(attraction_objs[0], indent=2, cls=NpEncoder))
 
 def place_format_transform(ti):
@@ -85,68 +124,162 @@ def place_format_transform(ti):
         sha_data = next((sha for sha in data_sha if sha['place_id'] == place_id), None)
         if sha_data is not None:
             sha = {
-                'sha_name': sha_data['sha_name'],
-                'sha_type_code': sha_data['sha_type_code'],
-                'sha_type_description': sha_data['sha_type_description'],
-                'sha_cate_id': sha_data['sha_cate_id'],
-                'sha_cate_description': sha_data['sha_cate_description']
+                "sha_name": sha_data["sha_name"],
+                "sha_type_code": sha_data["sha_type_code"],
+                "sha_type_description": sha_data["sha_type_description"],
+                "sha_cate_id": sha_data["sha_cate_id"],
+                "sha_cate_description": sha_data["sha_cate_description"]
             }
         else:
             sha = {}
         
-        location_data = next((location for location in data_location if location['place_id'] == place_id), None)
+        location_data = next((location for location in data_location if location["place_id"] == place_id), None)
         if location_data is not None:
             location = {
-                'address': location_data['address'],
-                'sub_district': location_data['sub_district'],
-                'district': location_data['district'],
-                'province': location_data['province'],
-                'postcode': location_data['postcode']
+                "address": location_data["address"],
+                "sub_district": location_data["sub_district"],
+                "district": location_data["district"],
+                "province": location_data["province"],
+                "postcode": location_data["postcode"]
             }
         else:
             location = {}
         
-        contact_data = next((contact for contact in data_contact if contact['place_id'] == place_id), None)
+        contact_data = next((contact for contact in data_contact if contact["place_id"] == place_id), None)
         if contact_data is not None:
             contact = {
-                'mobile_number': contact_data['mobiles'],
-                'phone_number': contact_data['phones'],
-                'fax_number': [contact_data['fax']] if contact_data['fax'] else [],
-                'emails': contact_data['emails'],
-                'urls': contact_data['urls']
+                "mobile_number": contact_data["mobiles"],
+                "phone_number": contact_data["phones"],
+                "fax_number": [contact_data["fax"]] if contact_data["fax"] else [],
+                "emails": contact_data["emails"],
+                "urls": contact_data["urls"]
             }
         else:
             contact = {}
         
-        facility_data = next((facility['description'] for facility in facility_list if facility['place_id'] == place_id), None)
-        service_data = next((service['description'] for service in service_list if service['place_id'] == place_id), None)
+        facility_data = next((facility["description"] for facility in facility_list if facility["place_id"] == place_id), None)
+        service_data = next((service["description"] for service in service_list if service["place_id"] == place_id), None)
         
         # append json object
         output.append({
-            'place_id': place_id,
-            'place_name': place['place_name'],
-            'latitude': place['latitude'],
-            'longitude': place['longitude'],
-            'sha': sha,
-            'location': location,
-            'contact': contact,
-            'introduction': place['introduction'],
-            'detail': place['detail'],
-            'destination': place['destination'],
-            'category_code': place['category_code'],
-            'category_description': place['category_description'],
-            'how_to_travels': place['how_to_travel'],
-            'mobile_picture_urls': place['mobile_picture_urls'],
-            'web_picture_urls': place['web_picture_urls'],
-            'payment_methods': place['payment_methods'],
-            'facilities': facility_data,
-            'services': service_data
+            "place_id": place_id,
+            "place_name": place["place_name"],
+            "latitude": place["latitude"],
+            "longitude": place["longitude"],
+            "sha": sha,
+            "location": location,
+            "contact": contact,
+            "introduction": place["introduction"],
+            "detail": place["detail"],
+            "destination": place["destination"],
+            "category_code": place["category_code"],
+            "category_description": place["category_description"],
+            "how_to_travels": place["how_to_travel"],
+            "mobile_picture_urls": place["mobile_picture_urls"],
+            "web_picture_urls": place["web_picture_urls"],
+            "payment_methods": place["payment_methods"],
+            "facilities": facility_data,
+            "services": service_data
         })
     output = pd.DataFrame(output)
     # json_formatted_str = json.dumps(output[0], indent=2)
     # print(json_formatted_str)
-
+    # print(output.to_json(orient='records'))
     return output.to_json(orient='records')
+
+# def place_format_transform(ti):
+#     # load place data from downstream tasks
+#     data_place = json.loads(ti.xcom_pull(key="data_place_fv", task_ids="split_category"))
+#     data_sha = json.loads(ti.xcom_pull(key="sha_df", task_ids="sha_cln"))
+#     data_location = json.loads(ti.xcom_pull(key="location_df", task_ids="location_cln"))
+#     data_contact = json.loads(ti.xcom_pull(key="contact_df", task_ids="contact_cln"))
+#     data_facility = ti.xcom_pull(key="facilities_df", task_ids="facilities_cln")
+#     data_service = ti.xcom_pull(key="services_df", task_ids="services_cln")
+
+#     # convert json into dataframe
+#     # convert only these two because we want to use the function of pandas to 
+#     # convert from exploded version into a list of facilities and services
+#     df_facility = pd.read_json(data_facility, orient='records')
+#     df_service = pd.read_json(data_service, orient='records')
+
+#     # implode back to list form
+#     df_facility = df_facility.groupby(['place_id']).agg({'description': list}).reset_index()
+#     df_service = df_service.groupby(['place_id']).agg({'description': list}).reset_index()
+
+#     # transform back to json object
+#     facility_list = json.loads(df_facility.to_json(orient='records'))
+#     service_list = json.loads(df_service.to_json(orient='records'))
+
+#     output = []
+
+#     # loop through place 
+#     for place in data_place:
+#         place_id = place['place_id']
+#         sha_data = next((sha for sha in data_sha if sha['place_id'] == place_id), None)
+#         if sha_data is not None:
+#             sha = {
+#                 'sha_name': sha_data['sha_name'],
+#                 'sha_type_code': sha_data['sha_type_code'],
+#                 'sha_type_description': sha_data['sha_type_description'],
+#                 'sha_cate_id': sha_data['sha_cate_id'],
+#                 'sha_cate_description': sha_data['sha_cate_description']
+#             }
+#         else:
+#             sha = {}
+        
+#         location_data = next((location for location in data_location if location['place_id'] == place_id), None)
+#         if location_data is not None:
+#             location = {
+#                 'address': location_data['address'],
+#                 'sub_district': location_data['sub_district'],
+#                 'district': location_data['district'],
+#                 'province': location_data['province'],
+#                 'postcode': location_data['postcode']
+#             }
+#         else:
+#             location = {}
+        
+#         contact_data = next((contact for contact in data_contact if contact['place_id'] == place_id), None)
+#         if contact_data is not None:
+#             contact = {
+#                 'mobile_number': contact_data['mobiles'],
+#                 'phone_number': contact_data['phones'],
+#                 'fax_number': [contact_data['fax']] if contact_data['fax'] else [],
+#                 'emails': contact_data['emails'],
+#                 'urls': contact_data['urls']
+#             }
+#         else:
+#             contact = {}
+        
+#         facility_data = next((facility['description'] for facility in facility_list if facility['place_id'] == place_id), None)
+#         service_data = next((service['description'] for service in service_list if service['place_id'] == place_id), None)
+        
+#         # append json object
+#         output.append({
+#             'place_id': place_id,
+#             'place_name': place['place_name'],
+#             'latitude': place['latitude'],
+#             'longitude': place['longitude'],
+#             'sha': sha,
+#             'location': location,
+#             'contact': contact,
+#             'introduction': place['introduction'],
+#             'detail': place['detail'],
+#             'destination': place['destination'],
+#             'category_code': place['category_code'],
+#             'category_description': place['category_description'],
+#             'how_to_travels': place['how_to_travel'],
+#             'mobile_picture_urls': place['mobile_picture_urls'],
+#             'web_picture_urls': place['web_picture_urls'],
+#             'payment_methods': place['payment_methods'],
+#             'facilities': facility_data,
+#             'services': service_data
+#         })
+#     output = pd.DataFrame(output)
+#     # json_formatted_str = json.dumps(output[0], indent=2)
+#     # print(json_formatted_str)
+
+#     return output.to_json(orient='records')
 
 def restaurant_format_transform(ti, place_json):
     data_pif = ti.xcom_pull(key='info_cleaned', task_ids='inf_cln')
