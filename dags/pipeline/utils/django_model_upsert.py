@@ -9,10 +9,15 @@ def get_token():
     try:
         # Define the login endpoint URL and payload
         url = "http://dev.se.kmitl.ac.th:1337/api/user/login/"
+        # url = "https://localhost:1337/api/user/login/"
         payload = {"email": "admin@iter.com", "password": "admin"}
 
+        session = requests.Session()
+
+        session.trust_env = False
+
         # Send the POST request to the login endpoint
-        response = requests.post(url, json=payload)
+        response = session.post(url, json=payload)
 
         # If the request was successful, extract the access token from the response and store it in a variable
         if response.status_code == 200:
@@ -38,59 +43,181 @@ def create_place(token, payload_request):
 
     payload = payload_request
 
-    response = requests.post('http://dev.se.kmitl.ac.th:1337/api/places/', headers=headers, json=payload)
+    session = requests.Session()
+    session.trust_env = False
+
+    response = session.post('http://dev.se.kmitl.ac.th:1337/api/places/', headers=headers, json=payload)
 
     if response.status_code == 201:
         print('Place created successfully!')
+    elif response.status_code == 400 and "Place with this ID already exists." in response.json():
+        print('Place already exists, skipping creation')
     else:
         print('Error creating place:', response.content)
 
-# def create_place(token, payload_request, batch_size=100):
-#     '''
-#     API request to create a place in the django server at port 1337
-#     '''
-#     headers = {
-#         'Authorization': f'Bearer {token}',
-#         'Content-Type': 'application/json'
-#     }
+def create_restaurant(token, payload_request):
+    '''
+    API request to create a place in the django server at port 1337
+    '''
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    }
 
-#     for i in range(0, len(payload_request), batch_size):
-#         batch_payload = payload_request[i:i+batch_size]
-#         response = requests.post('http://dev.se.kmitl.ac.th:1337/api/places/', headers=headers, json=batch_payload)
+    payload = payload_request
+    session = requests.Session()
+    session.trust_env = False
 
-#         if response.status_code == 201:
-#             print(f'Batch {i/batch_size + 1} of {len(payload_request)/batch_size} created successfully!')
-#         else:
-#             print('Error creating batch:', response.content)
+    response = session.post('http://dev.se.kmitl.ac.th:1337/api/places/restaurants/', headers=headers, json=payload)
 
+    if response.status_code == 201:
+        print('Restaurant created successfully!')
+    elif response.status_code == 400 and "Place with this ID already exists." in response.json():
+        print('Restaurant already exists, skipping creation')
+    else:
+        print('Error creating Restaurant:', response.content)
+
+def create_attraction(token, payload_request):
+    '''
+    API request to create a place in the django server at port 1337
+    '''
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    }
+
+    payload = payload_request
+    session = requests.Session()
+    session.trust_env = False
+
+    response = session.post('http://dev.se.kmitl.ac.th:1337/api/places/attractions/', headers=headers, json=payload)
+
+    if response.status_code == 201:
+        print('Attraction created successfully!')
+    elif response.status_code == 400 and "Place with this ID already exists." in response.json():
+        print('Attraction already exists, skipping creation')
+    else:
+        print('Error creating Attraction:', response.content)
+
+def create_accomodation(token, payload_request):
+    '''
+    API request to create a place in the django server at port 1337
+    '''
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    }
+
+    payload = payload_request
+    session = requests.Session()
+    session.trust_env = False
+
+    response = session.post('http://dev.se.kmitl.ac.th:1337/api/places/accommodations/', headers=headers, json=payload)
+
+    if response.status_code == 201:
+        print('Accommodation created successfully!')
+    elif response.status_code == 400 and "Place with this ID already exists." in response.json():
+        print('Accommodation already exists, skipping creation')
+    else:
+        print('Error creating Accommodation:', response.content)
+    
+def create_shop(token, payload_request):
+    '''
+    API request to create a place in the django server at port 1337
+    '''
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    }
+
+    payload = payload_request
+    session = requests.Session()
+    session.trust_env = False
+
+    response = session.post('http://dev.se.kmitl.ac.th:1337/api/places/shops/', headers=headers, json=payload)
+
+    if response.status_code == 201:
+        print('Shop created successfully!')
+    elif response.status_code == 400 and "Place with this ID already exists." in response.json():
+        print('Shop already exists, skipping creation')
+    else:
+        print('Error creating Shop:', response.content)
 
 def place_upsert(ti):
-    # Set the batch size for making a request
-    batch_size = 1000
 
     place_objs = place_format_transform(ti)
     '''
     Code to create places via an api request to the django server on dev.se.kmitl.ac.th
     '''
     token = get_token()
-    places_json = json.loads(place_objs)
-    print(places_json[0])
-    print(f"To check if places dumps is correct: {json.dumps(places_json[0])}")
 
+    # print(places_json[0])
+    # print(f"To check if places dumps is correct: {json.dumps(places_json[0])}")
+
+    
+    restaurant_objs = restaurant_format_transform(ti, place_objs)
+    restaurant_json = json.loads(restaurant_objs)
+    for i in range(0, len(restaurant_json)):
+        try:
+            print(f"Current place being created: {restaurant_json[i]}")
+            create_place(token, restaurant_json[i])
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 400 and "Restaurant with this ID already exists." in e.response.json():
+                print(f"Skipping place {i} because it already exists")
+                continue
+            else:
+                print(f"Error creating place {i}: {e}")
+
+    accomm_objs = accommodation_format_transform(ti, place_objs)
+    accom_json = json.loads(accomm_objs)
+    for i in range(0, len(restaurant_json)):
+        try:
+            print(f"Current place being created: {restaurant_json[i]}")
+            create_place(token, restaurant_json[i])
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 400 and "Accomodation with this ID already exists." in e.response.json():
+                print(f"Skipping place {i} because it already exists")
+                continue
+            else:
+                print(f"Error creating place {i}: {e}")
+
+    attraction_objs = attraction_format_transform(ti, place_objs)
+    attraction_json = json.loads(attraction_objs)
+    for i in range(0, len(restaurant_json)):
+        try:
+            print(f"Current place being created: {restaurant_json[i]}")
+            create_place(token, restaurant_json[i])
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 400 and "Attraction with this ID already exists." in e.response.json():
+                print(f"Skipping place {i} because it already exists")
+                continue
+            else:
+                print(f"Error creating place {i}: {e}")
+
+    shop_objs = shop_format_transform(ti, place_objs)
+    shop_json = json.loads(shop_objs)
+    for i in range(0, len(restaurant_json)):
+        try:
+            print(f"Current place being created: {restaurant_json[i]}")
+            create_place(token, restaurant_json[i])
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 400 and "Shop with this ID already exists." in e.response.json():
+                print(f"Skipping place {i} because it already exists")
+                continue
+            else:
+                print(f"Error creating place {i}: {e}")
+
+    places_json = json.loads(place_objs)
     for i in range(0, len(places_json)):
         try:
             print(f"Current place being created: {places_json[i]}")
             create_place(token, places_json[i])
         except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 500:
+            if e.response.status_code == 400 and "Place with this ID already exists." in e.response.json():
                 print(f"Skipping place {i} because it already exists")
+                continue
             else:
                 print(f"Error creating place {i}: {e}")
-    
-    # restaurant_objs = restaurant_format_transform(ti, place_objs)
-    # accomm_objs = accommodation_format_transform(ti, place_objs)
-    # attraction_objs = attraction_format_transform(ti, place_objs)
-    # shop_objs = shop_format_transform(ti, place_objs)
     # print(json.dumps(attraction_objs[0], indent=2, cls=NpEncoder))
 
 def place_format_transform(ti):
