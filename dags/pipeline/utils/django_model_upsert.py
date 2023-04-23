@@ -9,6 +9,7 @@ def get_token():
     try:
         # Define the login endpoint URL and payload
         url = "http://dev.se.kmitl.ac.th:1337/api/user/login/"
+        # url = "https://localhost:1337/api/user/login/"
         payload = {"email": "admin@iter.com", "password": "admin"}
 
         # Send the POST request to the login endpoint
@@ -42,6 +43,8 @@ def create_place(token, payload_request):
 
     if response.status_code == 201:
         print('Place created successfully!')
+    elif response.status_code == 400 and "Place with this ID already exists." in response.json():
+        print('Place already exists, skipping creation')
     else:
         print('Error creating place:', response.content)
 
@@ -73,24 +76,74 @@ def place_upsert(ti):
     Code to create places via an api request to the django server on dev.se.kmitl.ac.th
     '''
     token = get_token()
-    places_json = json.loads(place_objs)
-    print(places_json[0])
-    print(f"To check if places dumps is correct: {json.dumps(places_json[0])}")
 
+    # print(places_json[0])
+    # print(f"To check if places dumps is correct: {json.dumps(places_json[0])}")
+
+    
+    restaurant_objs = restaurant_format_transform(ti, place_objs)
+    restaurant_json = json.loads(restaurant_objs)
+    for i in range(0, len(restaurant_json)):
+        try:
+            print(f"Current place being created: {restaurant_json[i]}")
+            create_place(token, restaurant_json[i])
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 400 and "Restaurant with this ID already exists." in e.response.json():
+                print(f"Skipping place {i} because it already exists")
+                continue
+            else:
+                print(f"Error creating place {i}: {e}")
+
+    accomm_objs = accommodation_format_transform(ti, place_objs)
+    accom_json = json.loads(accomm_objs)
+    for i in range(0, len(restaurant_json)):
+        try:
+            print(f"Current place being created: {restaurant_json[i]}")
+            create_place(token, restaurant_json[i])
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 400 and "Accomodation with this ID already exists." in e.response.json():
+                print(f"Skipping place {i} because it already exists")
+                continue
+            else:
+                print(f"Error creating place {i}: {e}")
+
+    attraction_objs = attraction_format_transform(ti, place_objs)
+    attraction_json = json.loads(attraction_objs)
+    for i in range(0, len(restaurant_json)):
+        try:
+            print(f"Current place being created: {restaurant_json[i]}")
+            create_place(token, restaurant_json[i])
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 400 and "Attraction with this ID already exists." in e.response.json():
+                print(f"Skipping place {i} because it already exists")
+                continue
+            else:
+                print(f"Error creating place {i}: {e}")
+
+    shop_objs = shop_format_transform(ti, place_objs)
+    shop_json = json.loads(shop_objs)
+    for i in range(0, len(restaurant_json)):
+        try:
+            print(f"Current place being created: {restaurant_json[i]}")
+            create_place(token, restaurant_json[i])
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 400 and "Shop with this ID already exists." in e.response.json():
+                print(f"Skipping place {i} because it already exists")
+                continue
+            else:
+                print(f"Error creating place {i}: {e}")
+
+    places_json = json.loads(place_objs)
     for i in range(0, len(places_json)):
         try:
             print(f"Current place being created: {places_json[i]}")
             create_place(token, places_json[i])
         except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 500:
+            if e.response.status_code == 400 and "Place with this ID already exists." in e.response.json():
                 print(f"Skipping place {i} because it already exists")
+                continue
             else:
                 print(f"Error creating place {i}: {e}")
-    
-    # restaurant_objs = restaurant_format_transform(ti, place_objs)
-    # accomm_objs = accommodation_format_transform(ti, place_objs)
-    # attraction_objs = attraction_format_transform(ti, place_objs)
-    # shop_objs = shop_format_transform(ti, place_objs)
     # print(json.dumps(attraction_objs[0], indent=2, cls=NpEncoder))
 
 def place_format_transform(ti):
