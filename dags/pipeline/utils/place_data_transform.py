@@ -175,15 +175,29 @@ def ophr_data_cleaning(ti):
     new_cols = ophr_df['time'].str.split(" - ", n=1, expand=True)
     ophr_df['opening_time'] = new_cols[0]
     ophr_df['closing_time'] = new_cols[1]
-    ophr_df.loc[ophr_df.time == 'Closed', 'closing_time'] = 'Closed'
-    ophr_df.opening_time = ophr_df.opening_time.str.lower()
-    ophr_df.closing_time = ophr_df.closing_time.str.lower()
+    columns = ['opening_time', 'closing_time']
+
+    ophr_df.loc[ophr_df.time == 'Closed', columns] = "closed"
+    ophr_df.loc[ophr_df.opening_time == 'Open 24 hours', columns] = "00:00:00"
+    ophr_df.loc[ophr_df.opening_time == '', columns] = None
+
+    ophr_df.loc[~ophr_df.opening_time.isna() & (ophr_df.opening_time != 'closed'), 'opening_time'] = \
+    ophr_df[~ophr_df.opening_time.isna() & (ophr_df.opening_time != 'closed')].opening_time.apply(lambda x: pd.to_datetime(x).strftime('%H:%M:%S'))
+    ophr_df.loc[~ophr_df.closing_time.isna() & (ophr_df.closing_time != 'closed'), columns] = \
+    ophr_df[~ophr_df.closing_time.isna() & (ophr_df.closing_time != 'closed')].closing_time.apply(lambda x: pd.to_datetime(x).strftime('%H:%M:%S'))
 
     # fill missing value with unknown and remove time column
     ophr_df.fillna('unknown', inplace=True)
     ophr_df.drop(columns=['time'], inplace=True)
 
-    print(ophr_df.head())
+    # print(ophr_df[ophr_df.opening_time == "unknown"].head())
+    # print(ophr_df[ophr_df.opening_time != "unknown"].head())
+    # print(ophr_df[ophr_df.closing_time == "closed"].head())
+    # print(ophr_df.opening_time.unique())
+    # print(ophr_df.closing_time.unique())
+    # print(ophr_df.closing_time.value_counts())
+    # print(ophr_df.closing_time.value_counts())
+
     out_ophr = ophr_df.to_json(orient='records')
     ti.xcom_push(value=out_ophr, key='ophr_cleaned')
 
