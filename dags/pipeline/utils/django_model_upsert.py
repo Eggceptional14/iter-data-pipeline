@@ -12,8 +12,12 @@ def get_token():
         # url = "https://localhost:1337/api/user/login/"
         payload = {"email": "admin@iter.com", "password": "admin"}
 
+        session = requests.Session()
+
+        session.trust_env = False
+
         # Send the POST request to the login endpoint
-        response = requests.post(url, json=payload)
+        response = session.post(url, json=payload)
 
         # If the request was successful, extract the access token from the response and store it in a variable
         if response.status_code == 200:
@@ -39,7 +43,10 @@ def create_place(token, payload_request):
 
     payload = payload_request
 
-    response = requests.post('http://dev.se.kmitl.ac.th:1337/api/places/', headers=headers, json=payload)
+    session = requests.Session()
+    session.trust_env = False
+
+    response = session.post('http://dev.se.kmitl.ac.th:1337/api/places/', headers=headers, json=payload)
 
     if response.status_code == 201:
         print('Place created successfully!')
@@ -58,8 +65,10 @@ def create_restaurant(token, payload_request):
     }
 
     payload = payload_request
+    session = requests.Session()
+    session.trust_env = False
 
-    response = requests.post('http://dev.se.kmitl.ac.th:1337/api/places/restaurants/', headers=headers, json=payload)
+    response = session.post('http://dev.se.kmitl.ac.th:1337/api/places/restaurants/', headers=headers, json=payload)
 
     if response.status_code == 201:
         print('Restaurant created successfully!')
@@ -78,8 +87,10 @@ def create_attraction(token, payload_request):
     }
 
     payload = payload_request
+    session = requests.Session()
+    session.trust_env = False
 
-    response = requests.post('http://dev.se.kmitl.ac.th:1337/api/places/attractions/', headers=headers, json=payload)
+    response = session.post('http://dev.se.kmitl.ac.th:1337/api/places/attractions/', headers=headers, json=payload)
 
     if response.status_code == 201:
         print('Attraction created successfully!')
@@ -98,8 +109,10 @@ def create_accomodation(token, payload_request):
     }
 
     payload = payload_request
+    session = requests.Session()
+    session.trust_env = False
 
-    response = requests.post('http://dev.se.kmitl.ac.th:1337/api/places/accommodations/', headers=headers, json=payload)
+    response = session.post('http://dev.se.kmitl.ac.th:1337/api/places/accommodations/', headers=headers, json=payload)
 
     if response.status_code == 201:
         print('Accommodation created successfully!')
@@ -118,8 +131,10 @@ def create_shop(token, payload_request):
     }
 
     payload = payload_request
+    session = requests.Session()
+    session.trust_env = False
 
-    response = requests.post('http://dev.se.kmitl.ac.th:1337/api/places/shops/', headers=headers, json=payload)
+    response = session.post('http://dev.se.kmitl.ac.th:1337/api/places/shops/', headers=headers, json=payload)
 
     if response.status_code == 201:
         print('Shop created successfully!')
