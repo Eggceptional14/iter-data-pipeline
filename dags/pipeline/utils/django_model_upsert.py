@@ -1,6 +1,7 @@
 import json
 import pandas as pd
 import requests
+import asyncio
 
 def get_token():
     '''
@@ -32,6 +33,8 @@ def get_token():
         print(f"An error occurred while trying to get the token: {e}")
         return None
     
+# ############################## Place helper functions #########################################
+    
 def create_place(token, payload_request):
     '''
     API request to create a place in the django server at port 1337
@@ -55,7 +58,8 @@ def create_place(token, payload_request):
     else:
         print('Error creating place:', response.content)
 
-def create_restaurant(token, payload_request):
+# ############################## Restaurant helper functions #########################################
+async def create_restaurant(token, payload_request):
     '''
     API request to create a place in the django server at port 1337
     '''
@@ -77,7 +81,21 @@ def create_restaurant(token, payload_request):
     else:
         print('Error creating Restaurant:', response.content)
 
-def create_attraction(token, payload_request):
+async def create_restaurants(token, restaurant_json, batch_size):
+    '''
+    Batch API request to create multiple places in the django server at port 1337
+    '''
+    tasks = []
+    for i in range(0, len(restaurant_json), batch_size):
+        print(restaurant_json[i])
+        batch = restaurant_json[i:i+batch_size]
+        for j in range(len(batch)):
+            task = asyncio.create_task(create_restaurant(token, batch[j]))
+            tasks.append(task)
+        await asyncio.gather(*tasks)
+
+# ############################## Attraction helper functions #########################################
+async def create_attraction(token, payload_request):
     '''
     API request to create a place in the django server at port 1337
     '''
@@ -93,13 +111,26 @@ def create_attraction(token, payload_request):
     response = session.post('http://dev.se.kmitl.ac.th:1337/api/places/attractions/', headers=headers, json=payload)
 
     if response.status_code == 201:
-        print('Attraction created successfully!')
+        print('Atttraction created successfully!')
     elif response.status_code == 400 and "Place with this ID already exists." in response.json():
         print('Attraction already exists, skipping creation')
     else:
         print('Error creating Attraction:', response.content)
 
-def create_accomodation(token, payload_request):
+async def create_attractions(token, attraction_json, batch_size):
+    '''
+    Batch API request to create multiple places in the django server at port 1337
+    '''
+    tasks = []
+    for i in range(0, len(attraction_json), batch_size):
+        batch = attraction_json[i:i+batch_size]
+        for j in range(len(batch)):
+            task = asyncio.create_task(create_attraction(token, batch[j]))
+            tasks.append(task)
+        await asyncio.gather(*tasks)
+
+# ############################## Accommodation helper functions #########################################
+async def create_accommodation(token, payload_request):
     '''
     API request to create a place in the django server at port 1337
     '''
@@ -119,9 +150,22 @@ def create_accomodation(token, payload_request):
     elif response.status_code == 400 and "Place with this ID already exists." in response.json():
         print('Accommodation already exists, skipping creation')
     else:
-        print('Error creating Accommodation:', response.content)
-    
-def create_shop(token, payload_request):
+        print('Error creating accommodation:', response.content)
+
+async def create_accommodations(token, accom_json, batch_size):
+    '''
+    Batch API request to create multiple places in the django server at port 1337
+    '''
+    tasks = []
+    for i in range(0, len(accom_json), batch_size):
+        batch = accom_json[i:i+batch_size]
+        for j in range(len(batch)):
+            task = asyncio.create_task(create_accommodation(token, batch[j]))
+            tasks.append(task)
+        await asyncio.gather(*tasks)
+
+# ############################## Shop helper functions #########################################
+async def create_shop(token, payload_request):
     '''
     API request to create a place in the django server at port 1337
     '''
@@ -141,7 +185,56 @@ def create_shop(token, payload_request):
     elif response.status_code == 400 and "Place with this ID already exists." in response.json():
         print('Shop already exists, skipping creation')
     else:
-        print('Error creating Shop:', response.content)
+        print('Error creating shop:', response.content)
+
+async def create_shops(token, shop_json, batch_size):
+    '''
+    Batch API request to create multiple places in the django server at port 1337
+    '''
+    tasks = []
+    for i in range(0, len(shop_json), batch_size):
+        batch = shop_json[i:i+batch_size]
+        for j in range(len(batch)):
+            task = asyncio.create_task(create_shop(token, batch[j]))
+            tasks.append(task)
+        await asyncio.gather(*tasks)
+
+# ############################## Place helper functions #########################################
+async def create_place(token, payload_request):
+    '''
+    API request to create a place in the django server at port 1337
+    '''
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    }
+
+    payload = payload_request
+    session = requests.Session()
+    session.trust_env = False
+
+    response = session.post('http://dev.se.kmitl.ac.th:1337/api/places/', headers=headers, json=payload)
+
+    if response.status_code == 201:
+        print('Place created successfully!')
+    elif response.status_code == 400 and "Place with this ID already exists." in response.json():
+        print('Place already exists, skipping creation')
+    else:
+        print('Error creating Place:', response.content)
+    
+async def create_places(token, places_json, batch_size):
+    '''
+    Batch API request to create multiple places in the django server at port 1337
+    '''
+    tasks = []
+    for i in range(0, len(places_json), batch_size):
+        batch = places_json[i:i+batch_size]
+        for j in range(len(batch)):
+            task = asyncio.create_task(create_place(token, batch[j]))
+            tasks.append(task)
+        await asyncio.gather(*tasks)
+
+ ########################## Main event Loop #####################################       
 
 def place_upsert(ti):
 
@@ -150,74 +243,31 @@ def place_upsert(ti):
     Code to create places via an api request to the django server on dev.se.kmitl.ac.th
     '''
     token = get_token()
+    batch_size = 10
 
-    # print(places_json[0])
-    # print(f"To check if places dumps is correct: {json.dumps(places_json[0])}")
-
-    
+    print("############# CREATING RESTAURANT LOGS ############################")
     restaurant_objs = restaurant_format_transform(ti, place_objs)
     restaurant_json = json.loads(restaurant_objs)
-    for i in range(0, len(restaurant_json)):
-        try:
-            print(f"Current place being created: {restaurant_json[i]}")
-            create_place(token, restaurant_json[i])
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 400 and "Restaurant with this ID already exists." in e.response.json():
-                print(f"Skipping place {i} because it already exists")
-                continue
-            else:
-                print(f"Error creating place {i}: {e}")
+    asyncio.run(create_restaurants(token, restaurant_json, batch_size))
 
+    print("############# CREATING ACCOMMODATION LOGS ############################")
     accomm_objs = accommodation_format_transform(ti, place_objs)
     accom_json = json.loads(accomm_objs)
-    for i in range(0, len(restaurant_json)):
-        try:
-            print(f"Current place being created: {restaurant_json[i]}")
-            create_place(token, restaurant_json[i])
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 400 and "Accomodation with this ID already exists." in e.response.json():
-                print(f"Skipping place {i} because it already exists")
-                continue
-            else:
-                print(f"Error creating place {i}: {e}")
+    asyncio.run(create_accommodations(token, accom_json, batch_size))
 
+    print("############# CREATING ATTRACTION LOGS ############################")
     attraction_objs = attraction_format_transform(ti, place_objs)
     attraction_json = json.loads(attraction_objs)
-    for i in range(0, len(restaurant_json)):
-        try:
-            print(f"Current place being created: {restaurant_json[i]}")
-            create_place(token, restaurant_json[i])
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 400 and "Attraction with this ID already exists." in e.response.json():
-                print(f"Skipping place {i} because it already exists")
-                continue
-            else:
-                print(f"Error creating place {i}: {e}")
+    asyncio.run(create_attractions(token, attraction_json, batch_size))
 
+    print("############# CREATING SHOP LOGS ############################")
     shop_objs = shop_format_transform(ti, place_objs)
     shop_json = json.loads(shop_objs)
-    for i in range(0, len(restaurant_json)):
-        try:
-            print(f"Current place being created: {restaurant_json[i]}")
-            create_place(token, restaurant_json[i])
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 400 and "Shop with this ID already exists." in e.response.json():
-                print(f"Skipping place {i} because it already exists")
-                continue
-            else:
-                print(f"Error creating place {i}: {e}")
+    asyncio.run(create_shops(token, shop_json, batch_size))
 
+    print("############# CREATING PLACE LOGS ############################")
     places_json = json.loads(place_objs)
-    for i in range(0, len(places_json)):
-        try:
-            print(f"Current place being created: {places_json[i]}")
-            create_place(token, places_json[i])
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 400 and "Place with this ID already exists." in e.response.json():
-                print(f"Skipping place {i} because it already exists")
-                continue
-            else:
-                print(f"Error creating place {i}: {e}")
+    asyncio.run(create_places(token, places_json, batch_size))
     # print(json.dumps(attraction_objs[0], indent=2, cls=NpEncoder))
 
 def place_format_transform(ti):
