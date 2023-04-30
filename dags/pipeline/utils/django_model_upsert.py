@@ -268,6 +268,7 @@ def place_upsert(ti):
     print("############# CREATING PLACE LOGS ############################")
     places_json = json.loads(place_objs)
     asyncio.run(create_places(token, places_json, batch_size))
+
     # print(json.dumps(attraction_objs[0], indent=2, cls=NpEncoder))
 
 def place_format_transform(ti):
@@ -495,6 +496,7 @@ def restaurant_format_transform(ti, place_json):
     df_mchl = pd.read_json(data_mchl, orient='records')
     grouped = df_mchl.groupby(['place_id']).apply(lambda x: x[['name', 'year']].apply(row_to_dict, axis=1).tolist()).reset_index(name='michelins')
     df_restaurant = pd.merge(df_restaurant, grouped, on='place_id', how='left')
+    df_restaurant.michelins = df_restaurant.michelins.apply(lambda x: x if isinstance(x, list) else [])
     # temp = df_restaurant[~df_restaurant.michelins.isna()].to_dict('records')
     # print(json.dumps(temp[0], indent=2))
 
