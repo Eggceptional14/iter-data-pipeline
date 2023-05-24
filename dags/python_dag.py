@@ -42,7 +42,7 @@ with DAG(
         python_callable=get_detail
     )
     task_get_popularity = PythonOperator(
-        task_id = 'get_poppularity',
+        task_id = 'get_popularity',
         python_callable=create_popularity
     )
     task_split_nested = PythonOperator(
@@ -102,7 +102,7 @@ with DAG(
         python_callable=room_data_cleaning
     )
     task_create_rankvec = PythonOperator(
-        tasl_id = 'crt_rank_vec',
+        task_id = 'crt_rank_vec',
         python_callable=create_rank_vector
     )
     task_upsert = PythonOperator(
