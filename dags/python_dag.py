@@ -6,6 +6,7 @@ from airflow.operators.python import PythonOperator
 
 from pipeline.utils.get_raw_data import get_raw_data
 from pipeline.utils.get_detail import get_detail
+from pipeline.utils.get_popularity import create_popularity
 from pipeline.utils.split_nested import split_nested
 from pipeline.utils.data_cleaning import *
 from pipeline.utils.split_category import split_category
@@ -39,6 +40,10 @@ with DAG(
     task_get_detail = PythonOperator(
         task_id = 'get_detail',
         python_callable=get_detail
+    )
+    task_get_popularity = PythonOperator(
+        task_id = 'get_poppularity',
+        python_callable=create_popularity
     )
     task_split_nested = PythonOperator(
         task_id='split_nested',
@@ -109,7 +114,7 @@ with DAG(
         python_callable=place_upsert
     )
 
-task_get_raw_data >> task_get_detail >> task_split_nested
+task_get_raw_data >> [task_get_detail, task_get_popularity] >> task_split_nested
 task_split_nested >> [task_location_cln, task_sha_cln, task_contact_cln, task_facilities_cln, task_services_cln, task_places_cln] >> task_places_split
 # task_split_nested >> task_places_cln >> task_places_split
 task_places_split >> [task_tag_cln, task_inf_cln, task_mcl_cln, task_ophr_cln, task_room_cln] >> task_split_category >> [task_create_rankvec, task_upsert, task_django_upsert]
